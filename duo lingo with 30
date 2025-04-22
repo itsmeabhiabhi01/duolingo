@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Talk - Learn Languages</title>
+    <style>
+        :root {
+            --primary: #58cc02;
+            --secondary: #1cb0f6;
+            --dark: #3c3c3c;
+            --light: #f8f8f8;
+            --correct: #4caf50;
+            --wrong: #ff4b4b;
+            --current: #ffc800;
+            --locked: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: bold;
+        }
+
+        .xp {
+            color: var(--primary);
+        }
+
+        .streak {
+            color: var(--secondary);
+        }
+
+        main {
+            margin-top: 80px;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .language-selection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .language-selection h2 {
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .language-btn {
+            background-color: var(--light);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+            border: 2px solid var(--locked);
+        }
+
+        .language-btn:hover {
+            background-color: #e0e0e0;
+            border-color: var(--primary);
+        }
+
+        .language-btn.selected {
+            background-color: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .start-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .start-btn:hover {
+            background-color: #4aa900;
+        }
+
+        .start-btn:disabled {
+            background-color: var(--locked);
+            cursor: not-allowed;
+        }
+
+        .learning-content {
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .progress-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background-color: var(--locked);
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .timeline {
+            position: relative;
+            margin: 0 auto;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: var(--locked);
+            top: 0;
+            bottom: 0;
+            left: 30px;
+            z-index: 1;
+        }
+
+        .lesson {
+            position: relative;
+            padding-left: 70px;
+            margin-bottom: 2rem;
+            min-height: 60px;
+        }
+
+        .lesson-circle {
+            position: absolute;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--locked);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+
+        .lesson.completed .lesson-circle {
+            background-color: var(--primary);
+        }
+
+        .lesson.current .lesson-circle {
+            background-color: var(--current);
+            transform: scale(1.3);
+        }
+
+        .lesson-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .lesson-content::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid white;
+            left: -10px;
+            top: 20px;
+        }
+
+        .lesson.completed .lesson-content {
+            border-left: 3px solid var(--primary);
+        }
+
+        .lesson.current .lesson-content {
+            border-left: 3px solid var(--current);
+        }
+
+        .lesson h3 {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .lesson p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .lesson.locked {
+            opacity: 0.6;
+        }
+
+        .lesson.locked .lesson-content {
+            cursor: not-allowed;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalFadeIn 0.3s;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal h2 {
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+
+        .modal-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .modal-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+
+        .modal-btn:hover {
+            background-color: #4aa900;
+        }
+
+        .exercise-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .exercise-progress {
+            height: 5px;
+            background-color: var(--locked);
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+
+        .exercise-progress-fill {
+            height: 100%;
+            background-color: var(--secondary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option {
+            background-color: var(--light);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+
+        .option.correct {
+            background-color: var(--correct);
+            color: white;
+        }
+
+        .option.wrong {
+            background-color: var(--wrong);
+            color: white;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.2s;
+        }
+
+        .next-btn:hover {
+            background-color: #4aa900;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+
+        .correct-feedback {
+            color: var(--correct);
+        }
+
+        .wrong-feedback {
+            color: var(--wrong);
+        }
+
+        .xp-earned {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .xp-earned span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 15px;
+            }
+
+            .lesson {
+                padding-left: 50px;
+            }
+
+            .lesson-circle {
+                left: 10px;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .language-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Happy Talk</div>
+        <div class="stats">
+            <div class="stat xp">
+                <span>XP:</span>
+                <span id="xpCount">0</span>
+            </div>
+            <div class="stat streak">
+                <span>🔥</span>
+                <span id="streakCount">0</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="language-selection" id="languageSelection">
+            <h2>Choose Your Native Language</h2>
+            <div class="language-grid" id="nativeLanguageGrid"></div>
+            <h2>Choose Language to Learn</h2>
+            <div class="language-grid" id="learnLanguageGrid"></div>
+            <button class="start-btn" id="startBtn" disabled>Start Learning</button>
+        </div>
+
+        <div class="learning-content" id="learningContent" style="display: none;">
+            <div class="progress-container">
+                <h3>Your Progress</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="timeline" id="timeline"></div>
+
+            <div class="exercise-container" id="exerciseContainer">
+                <div class="exercise-progress">
+                    <div class="exercise-progress-fill" id="exerciseProgress"></div>
+                </div>
+                <div class="question" id="questionText"></div>
+                <div class="options" id="optionsContainer"></div>
+                <div class="feedback" id="feedback"></div>
+                <button class="next-btn" id="nextBtn">Continue</button>
+                <div class="xp-earned" id="xpEarned">
+                    You earned <span id="xpAmount">10</span> XP!
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Lesson Intro Modal -->
+    <div class="modal" id="lessonIntroModal">
+        <div class="modal-content">
+            <div class="modal-emoji" id="lessonEmoji"></div>
+            <h2 id="lessonTitle"></h2>
+            <p id="lessonDescription"></p>
+            <button class="modal-btn" id="startLessonBtn">Start Lesson</button>
+        </div>
+    </div>
+
+    <!-- Lesson Complete Modal -->
+    <div class="modal" id="lessonCompleteModal">
+        <div class="modal-content">
+            <div class="modal-emoji">🎉</div>
+            <h2>Lesson Complete!</h2>
+            <p>You earned <span id="completeXp">20</span> XP</p>
+            <p id="nextLessonText"></p>
+            <button class="modal-btn" id="continueBtn">Continue</button>
+        </div>
+    </div>
+
+    <script>
+        // Language and Lesson Data
+        const languages = [
+            { id: 'english', name: 'English', emoji: '🇬🇧' },
+            { id: 'spanish', name: 'Spanish', emoji: '🇪🇸' },
+            { id: 'french', name: 'French', emoji: '🇫🇷' }
+        ];
+
+        // Base lesson template for both languages
+        const lessonTemplates = [
+            { id: 1, emoji: "📖", title: "Basics 1", description: "Basic greetings and common words" },
+            { id: 2, emoji: "🔄", title: "Basics 2", description: "Common phrases and simple sentences" },
+            { id: 3, emoji: "🍎", title: "Food 1", description: "Food and drink vocabulary" },
+            { id: 4, emoji: "🍽️", title: "Food 2", description: "Ordering food and dining phrases" },
+            { id: 5, emoji: "🐶", title: "Animals 1", description: "Animal names and sounds" },
+            { id: 6, emoji: "🦒", title: "Animals 2", description: "More animal vocabulary" },
+            { id: 7, emoji: "👗", title: "Clothing 1", description: "Clothes and accessories" },
+            { id: 8, emoji: "👠", title: "Clothing 2", description: "Describing outfits" },
+            { id: 9, emoji: "🏃", title: "Verbs 1", description: "Basic action verbs" },
+            { id: 10, emoji: "🚴", title: "Verbs 2", description: "More action verbs" },
+            { id: 11, emoji: "🙋", title: "Greetings 1", description: "Formal and informal greetings" },
+            { id: 12, emoji: "🤝", title: "Greetings 2", description: "Conversational greetings" },
+            { id: 13, emoji: "👨‍👩‍👧", title: "Family 1", description: "Family members" },
+            { id: 14, emoji: "🏡", title: "Family 2", description: "Describing family relationships" },
+            { id: 15, emoji: "🎨", title: "Colors", description: "Color names and descriptions" },
+            { id: 16, emoji: "🔢", title: "Numbers 1", description: "Numbers 1-20" },
+            { id: 17, emoji: "➗", title: "Numbers 2", description: "Numbers 21-100" },
+            { id: 18, emoji: "💪", title: "Body Parts", description: "Parts of the body" },
+            { id: 19, emoji: "⏰", title: "Daily Routine", description: "Daily activities and times" },
+            { id: 20, emoji: "🗓️", title: "Time & Dates", description: "Telling time and dates" },
+            { id: 21, emoji: "✈️", title: "Travel 1", description: "Travel vocabulary" },
+            { id: 22, emoji: "🗺️", title: "Travel 2", description: "Asking for directions" },
+            { id: 23, emoji: "🎮", title: "Hobbies", description: "Hobbies and interests" },
+            { id: 24, emoji: "😃", title: "Emotions", description: "Expressing feelings" },
+            { id: 25, emoji: "🌦️", title: "Weather", description: "Weather terms and forecasts" },
+            { id: 26, emoji: "👷", title: "Jobs", description: "Occupations and workplaces" },
+            { id: 27, emoji: "🎓", title: "Education", description: "School and learning terms" },
+            { id: 28, emoji: "🛍️", title: "Shopping", description: "Shopping phrases and items" },
+            { id: 29, emoji: "💬", title: "Conversations", description: "Basic dialogues" },
+            { id: 30, emoji: "🏁", title: "Final Test", description: "Comprehensive review" }
+        ];
+
+        // Sample questions for Spanish and French (Levels 1-3 shown; others follow similar pattern)
+        const lessons = {
+            spanish: lessonTemplates.map(lesson => ({
+                ...lesson,
+                exercises: generateSpanishExercises(lesson.id)
+            })),
+            french: lessonTemplates.map(lesson => ({
+                ...lesson,
+                exercises: generateFrenchExercises(lesson.id)
+            }))
+        };
+
+        // Generate Spanish exercises for each level
+        function generateSpanishExercises(levelId) {
+            const exercises = [];
+            const topics = {
+                1: [
+                    { question: "Translate to English: 'hola'", options: ["Hello", "Goodbye", "Thank you", "Please"], answer: 0 },
+                    { question: "Translate to English: 'gracias'", options: ["Please", "Thank you", "Sorry", "Excuse me"], answer: 1 },
+                    { question: "What does 'Hello' mean in Spanish?", options: ["Adiós", "Hola", "Gracias", "Por favor"], answer: 1 },
+                    { question: "Complete: ______ you! (Gracias)", options: ["Please", "Thank", "Sorry", "Excuse"], answer: 1 },
+                    { question: "Translate to English: 'por favor'", options: ["Please", "Thank you", "Goodbye", "Hello"], answer: 0 },
+                    { question: "Translate to English: 'adiós'", options: ["Hello", "Goodbye", "Thank you", "Please"], answer: 1 },
+                    { question: "What is 'Good morning' in Spanish?", options: ["Buenos días", "Buenas noches", "Buenas tardes", "Buen día"], answer: 0 },
+                    { question: "Translate to English: 'la manzana'", options: ["Apple", "Banana", "Orange", "Grape"], answer: 0 },
+                    { question: "Translate to English: 'el libro'", options: ["Book", "Pen", "Table", "Chair"], answer: 0 },
+                    { question: "What does 'Goodbye' mean in Spanish?", options: ["Hola", "Adiós", "Gracias", "Por favor"], answer: 1 }
+                ],
+                2: [
+                    { question: "Translate to English: '¿Cómo estás?'", options: ["What's your name?", "How are you?", "Where are you from?", "How old are you?"], answer: 1 },
+                    { question: "Complete: My name is ______.", options: ["Juan", "Hola", "Gracias", "Adiós"], answer: 0 },
+                    { question: "What does 'I am from...' mean in Spanish?", options: ["Soy de...", "Voy a...", "Tengo...", "Quiero..."], answer: 0 },
+                    { question: "Translate to English: 'Tengo hambre'", options: ["I am thirsty", "I am hungry", "I am tired", "I am happy"], answer: 1 },
+                    { question: "What is 'What time is it?' in Spanish?", options: ["¿Qué hora es?", "¿Qué día es?", "¿Cuánto cuesta?", "¿Dónde está?"], answer: 0 },
+                    { question: "Translate to English: 'Quiero agua'", options: ["I want food", "I want water", "I want coffee", "I want juice"], answer: 1 },
+                    { question: "Complete: I am ______ years old.", options: ["twenty", "veinte", "dos", "cinco"], answer: 0 },
+                    { question: "Translate to English: 'Me llamo Ana'", options: ["My name is Ana", "I am Ana", "This is Ana", "Ana is my friend"], answer: 0 },
+                    { question: "What does 'I want...' mean in Spanish?", options: ["Quiero...", "Soy...", "Tengo...", "Voy..."], answer: 0 },
+                    { question: "Translate to English: '¿Dónde estás?'", options: ["Where are you?", "Who are you?", "What are you?", "When are you?"], answer: 0 }
+                ],
+                3: [
+                    { question: "Translate to English: 'el agua'", options: ["Water", "Juice", "Coffee", "Milk"], answer: 0 },
+                    { question: "What is 'Bread' in Spanish?", options: ["Pan", "Leche", "Carne", "Fruta"], answer: 0 },
+                    { question: "Translate to English: 'la fruta'", options: ["Vegetable", "Fruit", "Meat", "Fish"], answer: 1 },
+                    { question: "Complete: I want to eat ______.", options: ["pizza", "agua", "libro", "casa"], answer: 0 },
+                    { question: "What does 'Apple' mean in Spanish?", options: ["Naranja", "Manzana", "Plátano", "Uva"], answer: 1 },
+                    { question: "Translate to English: 'el café'", options: ["Tea", "Coffee", "Juice", "Water"], answer: 1 },
+                    { question: "What is 'I like to eat...' in Spanish?", options: ["Me gusta comer...", "Quiero beber...", "Voy a...", "Tengo..."], answer: 0 },
+                    { question: "Translate to English: 'la leche'", options: ["Milk", "Water", "Juice", "Soda"], answer: 0 },
+                    { question: "Complete: The ______ is delicious.", options: ["comida", "casa", "libro", "carro"], answer: 0 },
+                    { question: "What does 'Orange' mean in Spanish?", options: ["Manzana", "Naranja", "Plátano", "Fresa"], answer: 1 }
+                ]
+                // Levels 4-30 follow similar patterns with increasing complexity
+            };
+
+            // Return exercises for the given level, or generate generic ones for levels 4-30
+            if (topics[levelId]) {
+                return topics[levelId].map(ex => ({ ...ex, type: "mcq" }));
+            } else {
+                // Generic template for higher levels
+                const baseTopics = [
+                    { question: `Translate to English: 'word${levelId}'`, options: ["Meaning", "Other1", "Other2", "Other3"], answer: 0 },
+                    { question: `What is 'Concept${levelId}' in Spanish?`, options: [`Concepto${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Complete: I am ______ ${levelId}.`, options: ["doing", "wrong1", "wrong2", "wrong3"], answer: 0 },
+                    { question: `Translate to English: 'phrase${levelId}'`, options: ["Phrase", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What does 'Item${levelId}' mean in Spanish?`, options: [`Ítem${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Translate to English: 'object${levelId}'`, options: ["Object", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What is 'Action${levelId}' in Spanish?`, options: [`Acción${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Complete: The ______ is ${levelId}.`, options: ["thing", "wrong1", "wrong2", "wrong3"], answer: 0 },
+                    { question: `Translate to English: 'term${levelId}'`, options: ["Term", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What does 'Place${levelId}' mean in Spanish?`, options: [`Lugar${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 }
+                ];
+                return baseTopics.map(ex => ({ ...ex, type: "mcq" }));
+            }
+        }
+
+        // Generate French exercises for each level
+        function generateFrenchExercises(levelId) {
+            const exercises = [];
+            const topics = {
+                1: [
+                    { question: "Translate to English: 'bonjour'", options: ["Hello", "Goodbye", "Thank you", "Please"], answer: 0 },
+                    { question: "Translate to English: 'merci'", options: ["Please", "Thank you", "Sorry", "Excuse me"], answer: 1 },
+                    { question: "What does 'Hello' mean in French?", options: ["Au revoir", "Bonjour", "Merci", "S'il vous plaît"], answer: 1 },
+                    { question: "Complete: ______ you! (Merci)", options: ["Please", "Thank", "Sorry", "Excuse"], answer: 1 },
+                    { question: "Translate to English: 's'il vous plaît'", options: ["Please", "Thank you", "Goodbye", "Hello"], answer: 0 },
+                    { question: "Translate to English: 'au revoir'", options: ["Hello", "Goodbye", "Thank you", "Please"], answer: 1 },
+                    { question: "What is 'Good morning' in French?", options: ["Bon matin", "Bonne nuit", "Bon après-midi", "Bonjour"], answer: 0 },
+                    { question: "Translate to English: 'la pomme'", options: ["Apple", "Banana", "Orange", "Grape"], answer: 0 },
+                    { question: "Translate to English: 'le livre'", options: ["Book", "Pen", "Table", "Chair"], answer: 0 },
+                    { question: "What does 'Goodbye' mean in French?", options: ["Bonjour", "Au revoir", "Merci", "S'il vous plaît"], answer: 1 }
+                ],
+                2: [
+                    { question: "Translate to English: 'Comment vas-tu?'", options: ["What's your name?", "How are you?", "Where are you from?", "How old are you?"], answer: 1 },
+                    { question: "Complete: My name is ______.", options: ["Marie", "Bonjour", "Merci", "Au revoir"], answer: 0 },
+                    { question: "What does 'I am from...' mean in French?", options: ["Je viens de...", "Je vais à...", "J'ai...", "Je veux..."], answer: 0 },
+                    { question: "Translate to English: 'J'ai faim'", options: ["I am thirsty", "I am hungry", "I am tired", "I am happy"], answer: 1 },
+                    { question: "What is 'What time is it?' in French?", options: ["Quelle heure est-il?", "Quel jour est-ce?", "Combien ça coûte?", "Où est-ce?"], answer: 0 },
+                    { question: "Translate to English: 'Je veux de l'eau'", options: ["I want food", "I want water", "I want coffee", "I want juice"], answer: 1 },
+                    { question: "Complete: I am ______ years old.", options: ["twenty", "vingt", "deux", "cinq"], answer: 0 },
+                    { question: "Translate to English: 'Je m'appelle Claire'", options: ["My name is Claire", "I am Claire", "This is Claire", "Claire is my friend"], answer: 0 },
+                    { question: "What does 'I want...' mean in French?", options: ["Je veux...", "Je suis...", "J'ai...", "Je vais..."], answer: 0 },
+                    { question: "Translate to English: 'Où es-tu?'", options: ["Where are you?", "Who are you?", "What are you?", "When are you?"], answer: 0 }
+                ],
+                3: [
+                    { question: "Translate to English: 'l'eau'", options: ["Water", "Juice", "Coffee", "Milk"], answer: 0 },
+                    { question: "What is 'Bread' in French?", options: ["Pain", "Lait", "Viande", "Fruit"], answer: 0 },
+                    { question: "Translate to English: 'le fruit'", options: ["Vegetable", "Fruit", "Meat", "Fish"], answer: 1 },
+                    { question: "Complete: I want to eat ______.", options: ["pizza", "eau", "livre", "maison"], answer: 0 },
+                    { question: "What does 'Apple' mean in French?", options: ["Orange", "Pomme", "Banane", "Raisin"], answer: 1 },
+                    { question: "Translate to English: 'le café'", options: ["Tea", "Coffee", "Juice", "Water"], answer: 1 },
+                    { question: "What is 'I like to eat...' in French?", options: ["J'aime manger...", "Je veux boire...", "Je vais...", "J'ai..."], answer: 0 },
+                    { question: "Translate to English: 'le lait'", options: ["Milk", "Water", "Juice", "Soda"], answer: 0 },
+                    { question: "Complete: The ______ is delicious.", options: ["nourriture", "maison", "livre", "voiture"], answer: 0 },
+                    { question: "What does 'Orange' mean in French?", options: ["Pomme", "Orange", "Banane", "Fraise"], answer: 1 }
+                ]
+                // Levels 4-30 follow similar patterns with increasing complexity
+            };
+
+            if (topics[levelId]) {
+                return topics[levelId].map(ex => ({ ...ex, type: "mcq" }));
+            } else {
+                // Generic template for higher levels
+                const baseTopics = [
+                    { question: `Translate to English: 'mot${levelId}'`, options: ["Word", "Other1", "Other2", "Other3"], answer: 0 },
+                    { question: `What is 'Concept${levelId}' in French?`, options: [`Concept${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Complete: I am ______ ${levelId}.`, options: ["doing", "wrong1", "wrong2", "wrong3"], answer: 0 },
+                    { question: `Translate to English: 'phrase${levelId}'`, options: ["Phrase", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What does 'Item${levelId}' mean in French?`, options: [`Objet${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Translate to English: 'object${levelId}'`, options: ["Object", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What is 'Action${levelId}' in French?`, options: [`Action${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `Complete: The ______ is ${levelId}.`, options: ["thing", "wrong1", "wrong2", "wrong3"], answer: 0 },
+                    { question: `Translate to English: 'terme${levelId}'`, options: ["Term", "Wrong1", "Wrong2", "Wrong3"], answer: 0 },
+                    { question: `What does 'Place${levelId}' mean in French?`, options: [`Lieu${levelId}`, "Wrong1", "Wrong2", "Wrong3"], answer: 0 }
+                ];
+                return baseTopics.map(ex => ({ ...ex, type: "mcq" }));
+            }
+        }
+
+        // App State
+        const state = {
+            nativeLanguage: null,
+            learnLanguage: null,
+            currentLevel: 1,
+            xp: 0,
+            streak: 0,
+            lastLogin: null,
+            completedLessons: [],
+            lessonScores: {},
+            currentExercise: 0,
+            correctAnswers: 0,
+            lessons: []
+        };
+
+        // DOM Elements
+        const languageSelection = document.getElementById('languageSelection');
+        const learningContent = document.getElementById('learningContent');
+        const nativeLanguageGrid = document.getElementById('nativeLanguageGrid');
+        const learnLanguageGrid = document.getElementById('learnLanguageGrid');
+        const startBtn = document.getElementById('startBtn');
+        const timeline = document.getElementById('timeline');
+        const exerciseContainer = document.getElementById('exerciseContainer');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('nextBtn');
+        const xpCount = document.getElementById('xpCount');
+        const streakCount = document.getElementById('streakCount');
+        const progressFill = document.getElementById('progressFill');
+        const exerciseProgress = document.getElementById('exerciseProgress');
+        const xpEarned = document.getElementById('xpEarned');
+        const xpAmount = document.getElementById('xpAmount');
+        const lessonIntroModal = document.getElementById('lessonIntroModal');
+        const lessonCompleteModal = document.getElementById('lessonCompleteModal');
+        const lessonEmoji = document.getElementById('lessonEmoji');
+        const lessonTitle = document.getElementById('lessonTitle');
+        const lessonDescription = document.getElementById('lessonDescription');
+        const startLessonBtn = document.getElementById('startLessonBtn');
+        const completeXp = document.getElementById('completeXp');
+        const nextLessonText = document.getElementById('nextLessonText');
+        const continueBtn = document.getElementById('continueBtn');
+
+        // Initialize the app
+        function init() {
+            loadState();
+            updateStreak();
+            if (!state.nativeLanguage || !state.learnLanguage || !lessons[state.learnLanguage]) {
+                renderLanguageSelection();
+            } else {
+                learningContent.style.display = 'block';
+                languageSelection.style.display = 'none';
+                renderTimeline();
+                updateStats();
+            }
+
+            // Event listeners
+            startBtn.addEventListener('click', startLearning);
+            startLessonBtn.addEventListener('click', startLesson);
+            nextBtn.addEventListener('click', nextExercise);
+            continueBtn.addEventListener('click', finishLesson);
+        }
+
+        // Load state from localStorage
+        function loadState() {
+            const savedState = localStorage.getItem('happyTalkState');
+            if (savedState) {
+                const parsedState = JSON.parse(savedState);
+                Object.assign(state, parsedState);
+
+                // Validate learnLanguage and reset if invalid
+                if (state.learnLanguage && lessons[state.learnLanguage]) {
+                    state.lessons = lessons[state.learnLanguage].map(lesson => ({
+                        ...lesson,
+                        completed: state.completedLessons.includes(lesson.id)
+                    }));
+                } else {
+                    // Reset to language selection if learnLanguage is invalid
+                    state.learnLanguage = null;
+                    state.nativeLanguage = null;
+                    state.lessons = [];
+                    state.completedLessons = [];
+                    state.lessonScores = {};
+                }
+            }
+        }
+
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('happyTalkState', JSON.stringify({
+                nativeLanguage: state.nativeLanguage,
+                learnLanguage: state.learnLanguage,
+                currentLevel: state.currentLevel,
+                xp: state.xp,
+                streak: state.streak,
+                lastLogin: state.lastLogin,
+                completedLessons: state.completedLessons,
+                lessonScores: state.lessonScores,
+                lessons: state.lessons.map(lesson => ({
+                    id: lesson.id,
+                    completed: lesson.completed
+                }))
+            }));
+        }
+
+        // Render language selection screen
+        function renderLanguageSelection() {
+            nativeLanguageGrid.innerHTML = '';
+            learnLanguageGrid.innerHTML = '';
+
+            languages.forEach(lang => {
+                const nativeBtn = document.createElement('div');
+                nativeBtn.className = 'language-btn';
+                nativeBtn.textContent = `${lang.emoji} ${lang.name}`;
+                nativeBtn.dataset.lang = lang.id;
+                nativeBtn.addEventListener('click', () => selectNativeLanguage(lang.id));
+                nativeLanguageGrid.appendChild(nativeBtn);
+
+                if (lang.id !== 'english') { // Only allow learning Spanish or French
+                    const learnBtn = document.createElement('div');
+                    learnBtn.className = 'language-btn';
+                    learnBtn.textContent = `${lang.emoji} ${lang.name}`;
+                    learnBtn.dataset.lang = lang.id;
+                    learnBtn.addEventListener('click', () => selectLearnLanguage(lang.id));
+                    learnLanguageGrid.appendChild(learnBtn);
+                }
+            });
+
+            updateLanguageSelectionUI();
+            checkStartButton();
+        }
+
+        // Select native language
+        function selectNativeLanguage(langId) {
+            state.nativeLanguage = langId;
+            updateLanguageSelectionUI();
+            checkStartButton();
+        }
+
+        // Select language to learn
+        function selectLearnLanguage(langId) {
+            if (langId === state.nativeLanguage) {
+                alert("Please choose a different language to learn.");
+                return;
+            }
+            state.learnLanguage = langId;
+            updateLanguageSelectionUI();
+            checkStartButton();
+        }
+
+        // Update language selection UI
+        function updateLanguageSelectionUI() {
+            const nativeBtns = nativeLanguageGrid.querySelectorAll('.language-btn');
+            const learnBtns = learnLanguageGrid.querySelectorAll('.language-btn');
+
+            nativeBtns.forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.lang === state.nativeLanguage);
+            });
+
+            learnBtns.forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.lang === state.learnLanguage);
+            });
+        }
+
+        // Enable/disable start button
+        function checkStartButton() {
+            startBtn.disabled = !(state.nativeLanguage && state.learnLanguage && state.nativeLanguage !== state.learnLanguage);
+        }
+
+        // Start learning after language selection
+        function startLearning() {
+            if (!state.learnLanguage || !lessons[state.learnLanguage]) {
+                alert("Invalid language selection. Please try again.");
+                return;
+            }
+
+            state.lessons = lessons[state.learnLanguage].map(lesson => ({
+                ...lesson,
+                completed: state.completedLessons.includes(lesson.id)
+            }));
+
+            languageSelection.style.display = 'none';
+            learningContent.style.display = 'block';
+            renderTimeline();
+            updateStats();
+            saveState();
+        }
+
+        // Update streak based on last login
+        function updateStreak() {
+            const today = new Date().toDateString();
+
+            if (!state.lastLogin) {
+                state.streak = 1;
+            } else if (state.lastLogin === today) {
+                return;
+            } else {
+                const lastLoginDate = new Date(state.lastLogin);
+                const currentDate = new Date();
+                const diffTime = currentDate - lastLoginDate;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+                if (diffDays === 1) {
+                    state.streak++;
+                } else if (diffDays > 1) {
+                    state.streak = 1;
+                }
+            }
+
+            state.lastLogin = today;
+            streakCount.textContent = state.streak;
+            saveState();
+        }
+
+        // Render the timeline with lessons
+        function renderTimeline() {
+            timeline.innerHTML = '';
+
+            state.lessons.forEach(lesson => {
+                const lessonElement = document.createElement('div');
+                lessonElement.className = `lesson ${lesson.completed ? 'completed' : ''} ${lesson.id === state.currentLevel ? 'current' : ''} ${lesson.id > state.currentLevel && !lesson.completed ? 'locked' : ''}`;
+
+                lessonElement.innerHTML = `
+                    <div class="lesson-circle">${lesson.emoji}</div>
+                    <div class="lesson-content">
+                        <h3>${lesson.title} <span>${lesson.emoji}</span></h3>
+                        <p>${lesson.description}</p>
+                    </div>
+                `;
+
+                if (lesson.id <= state.currentLevel || lesson.completed) {
+                    lessonElement.addEventListener('click', () => openLesson(lesson.id));
+                }
+
+                timeline.appendChild(lessonElement);
+            });
+
+            const currentLessonElement = document.querySelector('.lesson.current');
+            if (currentLessonElement) {
+                currentLessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            xpCount.textContent = state.xp;
+            streakCount.textContent = state.streak;
+
+            const progress = (state.currentLevel - 1) / state.lessons.length * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+
+        // Open a lesson (show intro modal)
+        function openLesson(lessonId) {
+            const lesson = state.lessons.find(l => l.id === lessonId);
+            if (!lesson || (lesson.id > state.currentLevel && !lesson.completed)) return;
+
+            lessonEmoji.textContent = lesson.emoji;
+            lessonTitle.textContent = lesson.title;
+            lessonDescription.textContent = lesson.description;
+
+            lessonIntroModal.style.display = 'flex';
+        }
+
+        // Start the selected lesson
+        function startLesson() {
+            lessonIntroModal.style.display = 'none';
+
+            const lesson = state.lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+
+            state.currentExercise = 0;
+            state.correctAnswers = 0;
+
+            showExercise();
+            exerciseContainer.style.display = 'block';
+
+            exerciseContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Show current exercise
+        function showExercise() {
+            const lesson = state.lessons.find(l => l.id === state.currentLevel);
+            if (!lesson || state.currentExercise >= lesson.exercises.length) {
+                completeLesson();
+                return;
+            }
+
+            const exercise = lesson.exercises[state.currentExercise];
+            questionText.textContent = exercise.question;
+
+            const progress = (state.currentExercise / lesson.exercises.length) * 100;
+            exerciseProgress.style.width = `${progress}%`;
+
+            optionsContainer.innerHTML = '';
+            exercise.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.optionIndex = index;
+                optionElement.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(optionElement);
+            });
+
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            nextBtn.style.display = 'none';
+            xpEarned.style.display = 'none';
+        }
+
+        // Handle answer selection
+        function selectAnswer(optionIndex) {
+            const lesson = state.lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+
+            const exercise = lesson.exercises[state.currentExercise];
+            const options = document.querySelectorAll('.option');
+
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+
+            if (optionIndex === exercise.answer) {
+                options[optionIndex].classList.add('correct');
+                feedback.textContent = 'Correct!';
+                feedback.className = 'feedback correct-feedback';
+                state.correctAnswers++;
+            } else {
+                options[optionIndex].classList.add('wrong');
+                options[exercise.answer].classList.add('correct');
+                feedback.textContent = `Incorrect! The correct answer is "${exercise.options[exercise.answer]}"`;
+                feedback.className = 'feedback wrong-feedback';
+            }
+
+            nextBtn.style.display = 'block';
+        }
+
+        // Move to next exercise
+        function nextExercise() {
+            state.currentExercise++;
+            showExercise();
+        }
+
+        // Complete the current lesson
+        function completeLesson() {
+            exerciseContainer.style.display = 'none';
+
+            const lesson = state.lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+
+            const earnedXp = state.correctAnswers * 2;
+            state.xp += earnedXp;
+
+            lesson.completed = true;
+            if (!state.completedLessons.includes(state.currentLevel)) {
+                state.completedLessons.push(state.currentLevel);
+            }
+
+            state.lessonScores[state.currentLevel] = {
+                score: state.correctAnswers,
+                total: lesson.exercises.length,
+                date: new Date().toISOString()
+            };
+
+            if (state.currentLevel < state.lessons.length) {
+                state.currentLevel++;
+            }
+
+            completeXp.textContent = earnedXp;
+
+            if (state.currentLevel <= state.lessons.length) {
+                const nextLesson = state.lessons.find(l => l.id === state.currentLevel);
+                nextLessonText.textContent = `Next: ${nextLesson.emoji} ${nextLesson.title}`;
+            } else {
+                nextLessonText.textContent = "You've completed all lessons!";
+            }
+
+            saveState();
+            updateStats();
+            renderTimeline();
+
+            lessonCompleteModal.style.display = 'flex';
+        }
+
+        // Finish lesson and return to timeline
+        function finishLesson() {
+            lessonCompleteModal.style.display = 'none';
+
+            const currentLessonElement = document.querySelector('.lesson.current');
+            if (currentLessonElement) {
+                currentLessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
