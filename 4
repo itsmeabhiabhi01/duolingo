@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Talk - Learn English</title>
+    <style>
+        :root {
+            --primary: #58cc02;
+            --secondary: #1cb0f6;
+            --dark: #3c3c3c;
+            --light: #f8f8f8;
+            --correct: #4caf50;
+            --wrong: #ff4b4b;
+            --current: #ffc800;
+            --locked: #e0e0e0;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .stats {
+            display: flex;
+            gap: 1rem;
+        }
+        
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-weight: bold;
+        }
+        
+        .xp {
+            color: var(--primary);
+        }
+        
+        .streak {
+            color: var(--secondary);
+        }
+        
+        main {
+            margin-top: 80px;
+            padding: 1rem;
+        }
+        
+        .progress-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-top: 0.5rem;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .timeline {
+            position: relative;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            width: 2px;
+            background-color: var(--locked);
+            top: 0;
+            bottom: 0;
+            left: 30px;
+            z-index: 1;
+        }
+        
+        .lesson {
+            position: relative;
+            padding-left: 70px;
+            margin-bottom: 2rem;
+            min-height: 60px;
+        }
+        
+        .lesson-circle {
+            position: absolute;
+            left: 20px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: var(--locked);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        
+        .lesson.completed .lesson-circle {
+            background-color: var(--primary);
+        }
+        
+        .lesson.current .lesson-circle {
+            background-color: var(--current);
+            transform: scale(1.3);
+        }
+        
+        .lesson-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .lesson-content::before {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid white;
+            left: -10px;
+            top: 20px;
+        }
+        
+        .lesson.completed .lesson-content {
+            border-left: 3px solid var(--primary);
+        }
+        
+        .lesson.current .lesson-content {
+            border-left: 3px solid var(--current);
+        }
+        
+        .lesson h3 {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .lesson p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .lesson.locked {
+            opacity: 0.6;
+        }
+        
+        .lesson.locked .lesson-content {
+            cursor: not-allowed;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: modalFadeIn 0.3s;
+        }
+        
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal h2 {
+            margin-bottom: 1rem;
+            font-size: 1.8rem;
+        }
+        
+        .modal-emoji {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: background-color 0.2s;
+        }
+        
+        .modal-btn:hover {
+            background-color: #4aa900;
+        }
+        
+        .exercise-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .exercise-progress {
+            height: 5px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .exercise-progress-fill {
+            height: 100%;
+            background-color: var(--secondary);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .option {
+            background-color: var(--light);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .option.correct {
+            background-color: var(--correct);
+            color: white;
+        }
+        
+        .option.wrong {
+            background-color: var(--wrong);
+            color: white;
+        }
+        
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.2s;
+        }
+        
+        .next-btn:hover {
+            background-color: #4aa900;
+        }
+        
+        .feedback {
+            text-align: center;
+            margin-top: 1rem;
+            font-weight: bold;
+            min-height: 1.5rem;
+        }
+        
+        .correct-feedback {
+            color: var(--correct);
+        }
+        
+        .wrong-feedback {
+            color: var(--wrong);
+        }
+        
+        .xp-earned {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .xp-earned span {
+            color: var(--primary);
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .timeline::before {
+                left: 15px;
+            }
+            
+            .lesson {
+                padding-left: 50px;
+            }
+            
+            .lesson-circle {
+                left: 10px;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Happy Talk</div>
+        <div class="stats">
+            <div class="stat xp">
+                <span>XP:</span>
+                <span id="xpCount">0</span>
+            </div>
+            <div class="stat streak">
+                <span>🔥</span>
+                <span id="streakCount">0</span>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div class="progress-container">
+            <h3>Your Progress</h3>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <div class="timeline" id="timeline">
+            <!-- Lessons will be added here dynamically -->
+        </div>
+        
+        <div class="exercise-container" id="exerciseContainer">
+            <div class="exercise-progress">
+                <div class="exercise-progress-fill" id="exerciseProgress"></div>
+            </div>
+            
+            <div class="question" id="questionText"></div>
+            
+            <div class="options" id="optionsContainer"></div>
+            
+            <div class="feedback" id="feedback"></div>
+            
+            <button class="next-btn" id="nextBtn">Continue</button>
+            
+            <div class="xp-earned" id="xpEarned">
+                You earned <span id="xpAmount">10</span> XP!
+            </div>
+        </div>
+    </main>
+    
+    <!-- Lesson Intro Modal -->
+    <div class="modal" id="lessonIntroModal">
+        <div class="modal-content">
+            <div class="modal-emoji" id="lessonEmoji"></div>
+            <h2 id="lessonTitle"></h2>
+            <p id="lessonDescription"></p>
+            <button class="modal-btn" id="startLessonBtn">Start Lesson</button>
+        </div>
+    </div>
+    
+    <!-- Lesson Complete Modal -->
+    <div class="modal" id="lessonCompleteModal">
+        <div class="modal-content">
+            <div class="modal-emoji">🎉</div>
+            <h2>Lesson Complete!</h2>
+            <p>You earned <span id="completeXp">10</span> XP</p>
+            <p id="nextLessonText"></p>
+            <button class="modal-btn" id="continueBtn">Continue</button>
+        </div>
+    </div>
+    
+    <script>
+        // App state
+        const state = {
+            currentLevel: 1,
+            xp: 0,
+            streak: 0,
+            lastLogin: null,
+            completedLessons: [],
+            lessonScores: {},
+            currentExercise: 0,
+            correctAnswers: 0
+        };
+        
+        // Lesson data
+        const lessons = [
+            { id: 1, emoji: "🍎", title: "Basics 1", description: "Learn basic words and phrases", 
+              exercises: [
+                { question: "What does 'Hello' mean?", type: "mcq", options: ["Hola", "Bonjour", "Hello", "Ciao"], answer: 2 },
+                { question: "Translate: Goodbye", type: "mcq", options: ["Adiós", "Au revoir", "Goodbye", "Arrivederci"], answer: 2 },
+                { question: "What is the correct spelling?", type: "mcq", options: ["Thank you", "Thank yu", "Thanck you", "Thanc you"], answer: 0 }
+              ] },
+            { id: 2, emoji: "🍊", title: "Basics 2", description: "More basic words and phrases", 
+              exercises: [
+                { question: "Translate: Please", type: "mcq", options: ["Por favor", "S'il vous plaît", "Please", "Per favore"], answer: 2 },
+                { question: "What does 'Sorry' mean?", type: "mcq", options: ["Gracias", "Sorry", "Merci", "Danke"], answer: 1 },
+                { question: "Complete: My ___ is John", type: "mcq", options: ["name", "nom", "nombre", "nome"], answer: 0 }
+              ] },
+            { id: 3, emoji: "🍔", title: "Food", description: "Food related vocabulary", 
+              exercises: [
+                { question: "What is this? 🍎", type: "mcq", options: ["Banana", "Apple", "Orange", "Grape"], answer: 1 },
+                { question: "Translate: Water", type: "mcq", options: ["Agua", "Eau", "Water", "Acqua"], answer: 2 },
+                { question: "What do you drink in the morning?", type: "mcq", options: ["Coffee", "Juice", "Tea", "All of the above"], answer: 3 }
+              ] },
+            { id: 4, emoji: "🐶", title: "Animals", description: "Animal names and sounds", 
+              exercises: [
+                { question: "What sound does a dog make?", type: "mcq", options: ["Meow", "Moo", "Woof", "Oink"], answer: 2 },
+                { question: "What is this? 🐱", type: "mcq", options: ["Dog", "Cat", "Cow", "Pig"], answer: 1 },
+                { question: "Which one can fly?", type: "mcq", options: ["Dog", "Cat", "Bird", "Fish"], answer: 2 }
+              ] },
+            { id: 5, emoji: "👗", title: "Clothing", description: "Clothes and accessories", 
+              exercises: [
+                { question: "What do you wear on your feet?", type: "mcq", options: ["Hat", "Shoes", "Gloves", "Scarf"], answer: 1 },
+                { question: "Which one is for cold weather?", type: "mcq", options: ["T-shirt", "Shorts", "Coat", "Sandals"], answer: 2 },
+                { question: "Complete: I wear ___ on my head", type: "mcq", options: ["pants", "shoes", "hat", "socks"], answer: 2 }
+              ] },
+            // Additional lessons would follow the same pattern up to 29
+            { id: 6, emoji: "🏃", title: "Verbs 1", description: "Basic action words", exercises: [] },
+            { id: 7, emoji: "🙋", title: "Greetings", description: "Common greetings", exercises: [] },
+            { id: 8, emoji: "👨‍👩‍👧", title: "Family", description: "Family members", exercises: [] },
+            { id: 9, emoji: "🎨", title: "Colors", description: "Color names", exercises: [] },
+            { id: 10, emoji: "🔢", title: "Numbers", description: "Numbers 1-100", exercises: [] },
+            { id: 11, emoji: "💪", title: "Body Parts", description: "Parts of the body", exercises: [] },
+            { id: 12, emoji: "⏰", title: "Daily Routine", description: "Daily activities", exercises: [] },
+            { id: 13, emoji: "🗓️", title: "Time & Dates", description: "Telling time and dates", exercises: [] },
+            { id: 14, emoji: "✈️", title: "Travel", description: "Travel vocabulary", exercises: [] },
+            { id: 15, emoji: "🧭", title: "Directions", description: "Asking and giving directions", exercises: [] },
+            { id: 16, emoji: "🎮", title: "Hobbies", description: "Hobbies and interests", exercises: [] },
+            { id: 17, emoji: "😃", title: "Emotions", description: "Expressing feelings", exercises: [] },
+            { id: 18, emoji: "🌦️", title: "Weather", description: "Weather terms", exercises: [] },
+            { id: 19, emoji: "👷", title: "Jobs", description: "Occupations", exercises: [] },
+            { id: 20, emoji: "🎓", title: "Education", description: "School and learning", exercises: [] },
+            { id: 21, emoji: "🛍️", title: "Shopping", description: "Shopping phrases", exercises: [] },
+            { id: 22, emoji: "🏥", title: "Health", description: "Health and body", exercises: [] },
+            { id: 23, emoji: "🌳", title: "Nature", description: "Nature vocabulary", exercises: [] },
+            { id: 24, emoji: "💻", title: "Technology", description: "Tech terms", exercises: [] },
+            { id: 25, emoji: "📚", title: "Advanced Grammar", description: "Complex grammar", exercises: [] },
+            { id: 26, emoji: "💬", title: "Conversations", description: "Dialogues", exercises: [] },
+            { id: 27, emoji: "🎧", title: "Listening Practice", description: "Audio exercises", exercises: [] },
+            { id: 28, emoji: "✍️", title: "Writing Practice", description: "Writing exercises", exercises: [] },
+            { id: 29, emoji: "🏁", title: "Final Test", description: "Comprehensive test", exercises: [] }
+        ];
+        
+        // DOM elements
+        const timeline = document.getElementById('timeline');
+        const exerciseContainer = document.getElementById('exerciseContainer');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const feedback = document.getElementById('feedback');
+        const nextBtn = document.getElementById('nextBtn');
+        const xpCount = document.getElementById('xpCount');
+        const streakCount = document.getElementById('streakCount');
+        const progressFill = document.getElementById('progressFill');
+        const exerciseProgress = document.getElementById('exerciseProgress');
+        const xpEarned = document.getElementById('xpEarned');
+        const xpAmount = document.getElementById('xpAmount');
+        
+        // Modal elements
+        const lessonIntroModal = document.getElementById('lessonIntroModal');
+        const lessonCompleteModal = document.getElementById('lessonCompleteModal');
+        const lessonEmoji = document.getElementById('lessonEmoji');
+        const lessonTitle = document.getElementById('lessonTitle');
+        const lessonDescription = document.getElementById('lessonDescription');
+        const startLessonBtn = document.getElementById('startLessonBtn');
+        const completeXp = document.getElementById('completeXp');
+        const nextLessonText = document.getElementById('nextLessonText');
+        const continueBtn = document.getElementById('continueBtn');
+        
+        // Initialize the app
+        function init() {
+            loadState();
+            updateStreak();
+            renderTimeline();
+            updateStats();
+            
+            // Set up event listeners
+            startLessonBtn.addEventListener('click', startLesson);
+            nextBtn.addEventListener('click', nextExercise);
+            continueBtn.addEventListener('click', finishLesson);
+        }
+        
+        // Load state from localStorage
+        function loadState() {
+            const savedState = localStorage.getItem('happyTalkState');
+            if (savedState) {
+                Object.assign(state, JSON.parse(savedState));
+            }
+            
+            // Set default current level if not set
+            if (!state.currentLevel) {
+                state.currentLevel = 1;
+            }
+        }
+        
+        // Save state to localStorage
+        function saveState() {
+            localStorage.setItem('happyTalkState', JSON.stringify(state));
+        }
+        
+        // Update streak based on last login
+        function updateStreak() {
+            const today = new Date().toDateString();
+            
+            if (!state.lastLogin) {
+                // First time user
+                state.streak = 1;
+            } else if (state.lastLogin === today) {
+                // Already logged in today
+                return;
+            } else {
+                const lastLoginDate = new Date(state.lastLogin);
+                const currentDate = new Date();
+                const diffTime = currentDate - lastLoginDate;
+                const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    // Consecutive day
+                    state.streak++;
+                } else if (diffDays > 1) {
+                    // Broken streak
+                    state.streak = 1;
+                }
+            }
+            
+            state.lastLogin = today;
+            saveState();
+        }
+        
+        // Render the timeline with lessons
+        function renderTimeline() {
+            timeline.innerHTML = '';
+            
+            lessons.forEach(lesson => {
+                const lessonElement = document.createElement('div');
+                lessonElement.className = `lesson ${lesson.id < state.currentLevel ? 'completed' : ''} ${lesson.id === state.currentLevel ? 'current' : ''} ${lesson.id > state.currentLevel ? 'locked' : ''}`;
+                
+                lessonElement.innerHTML = `
+                    <div class="lesson-circle">${lesson.emoji}</div>
+                    <div class="lesson-content">
+                        <h3>${lesson.title} <span>${lesson.emoji}</span></h3>
+                        <p>${lesson.description}</p>
+                    </div>
+                `;
+                
+                if (lesson.id <= state.currentLevel) {
+                    lessonElement.addEventListener('click', () => openLesson(lesson.id));
+                }
+                
+                timeline.appendChild(lessonElement);
+            });
+            
+            // Scroll to current lesson
+            const currentLessonElement = document.querySelector('.lesson.current');
+            if (currentLessonElement) {
+                currentLessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        // Update stats display
+        function updateStats() {
+            xpCount.textContent = state.xp;
+            streakCount.textContent = state.streak;
+            
+            // Update progress bar
+            const progress = (state.currentLevel - 1) / lessons.length * 100;
+            progressFill.style.width = `${progress}%`;
+        }
+        
+        // Open a lesson (show intro modal)
+        function openLesson(lessonId) {
+            const lesson = lessons.find(l => l.id === lessonId);
+            if (!lesson) return;
+            
+            lessonEmoji.textContent = lesson.emoji;
+            lessonTitle.textContent = lesson.title;
+            lessonDescription.textContent = lesson.description;
+            
+            lessonIntroModal.style.display = 'flex';
+        }
+        
+        // Start the selected lesson
+        function startLesson() {
+            lessonIntroModal.style.display = 'none';
+            
+            const lesson = lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+            
+            state.currentExercise = 0;
+            state.correctAnswers = 0;
+            
+            showExercise();
+            exerciseContainer.style.display = 'block';
+            
+            // Scroll to exercise container
+            exerciseContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Show current exercise
+        function showExercise() {
+            const lesson = lessons.find(l => l.id === state.currentLevel);
+            if (!lesson || state.currentExercise >= lesson.exercises.length) {
+                completeLesson();
+                return;
+            }
+            
+            const exercise = lesson.exercises[state.currentExercise];
+            questionText.textContent = exercise.question;
+            
+            // Update exercise progress
+            const progress = (state.currentExercise / lesson.exercises.length) * 100;
+            exerciseProgress.style.width = `${progress}%`;
+            
+            // Create options
+            optionsContainer.innerHTML = '';
+            exercise.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.optionIndex = index;
+                optionElement.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            // Reset UI
+            feedback.textContent = '';
+            feedback.className = 'feedback';
+            nextBtn.style.display = 'none';
+            xpEarned.style.display = 'none';
+        }
+        
+        // Handle answer selection
+        function selectAnswer(optionIndex) {
+            const lesson = lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+            
+            const exercise = lesson.exercises[state.currentExercise];
+            const options = document.querySelectorAll('.option');
+            
+            // Disable all options
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            // Check answer
+            if (optionIndex === exercise.answer) {
+                options[optionIndex].classList.add('correct');
+                feedback.textContent = 'Correct!';
+                feedback.className = 'feedback correct-feedback';
+                state.correctAnswers++;
+            } else {
+                options[optionIndex].classList.add('wrong');
+                options[exercise.answer].classList.add('correct');
+                feedback.textContent = 'Incorrect!';
+                feedback.className = 'feedback wrong-feedback';
+            }
+            
+            nextBtn.style.display = 'block';
+        }
+        
+        // Move to next exercise
+        function nextExercise() {
+            state.currentExercise++;
+            showExercise();
+        }
+        
+        // Complete the current lesson
+        function completeLesson() {
+            exerciseContainer.style.display = 'none';
+            
+            const lesson = lessons.find(l => l.id === state.currentLevel);
+            if (!lesson) return;
+            
+            // Calculate XP earned (10 per correct answer)
+            const earnedXp = state.correctAnswers * 10;
+            state.xp += earnedXp;
+            
+            // Mark lesson as completed if not already
+            if (!state.completedLessons.includes(state.currentLevel)) {
+                state.completedLessons.push(state.currentLevel);
+            }
+            
+            // Save score for this lesson
+            state.lessonScores[state.currentLevel] = {
+                score: state.correctAnswers,
+                total: lesson.exercises.length,
+                date: new Date().toISOString()
+            };
+            
+            // Unlock next level if not the last one
+            if (state.currentLevel < lessons.length) {
+                state.currentLevel++;
+            }
+            
+            // Show completion modal
+            completeXp.textContent = earnedXp;
+            
+            if (state.currentLevel <= lessons.length) {
+                const nextLesson = lessons.find(l => l.id === state.currentLevel);
+                nextLessonText.textContent = `Next: ${nextLesson.emoji} ${nextLesson.title}`;
+            } else {
+                nextLessonText.textContent = "You've completed all lessons!";
+            }
+            
+            // Save state and update UI
+            saveState();
+            updateStats();
+            renderTimeline();
+            
+            lessonCompleteModal.style.display = 'flex';
+        }
+        
+        // Finish lesson and return to timeline
+        function finishLesson() {
+            lessonCompleteModal.style.display = 'none';
+            
+            // Scroll to current lesson
+            const currentLessonElement = document.querySelector('.lesson.current');
+            if (currentLessonElement) {
+                currentLessonElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+        
+        // Initialize the app
+        init();
+    </script>
+</body>
+</html>
