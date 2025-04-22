@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Talk - Language Learning</title>
+    <style>
+        :root {
+            --primary: #58cc02;
+            --primary-hover: #47a600;
+            --secondary: #fff;
+            --text-dark: #3c3c3c;
+            --text-light: #777;
+            --accent: #ffde00;
+            --wrong: #ff4b4b;
+            --right: #58cc02;
+            --locked: #e5e5e5;
+            --current: #84d8ff;
+            --completed: #b4f0a8;
+            --border-radius: 16px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Nunito', 'Arial Rounded MT Bold', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f7f7f7;
+            color: var(--text-dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: white;
+            border-bottom: 1px solid #e5e5e5;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            color: var(--text-light);
+            font-size: 18px;
+        }
+
+        .language-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .language-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .language-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .language-flag {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .language-name {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .back-btn {
+            background-color: var(--text-light);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background-color 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background-color: var(--text-dark);
+        }
+
+        .language-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .language-icon {
+            font-size: 36px;
+            margin-right: 15px;
+        }
+
+        .language-title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background-color: #e5e5e5;
+            border-radius: 8px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary);
+            border-radius: 8px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .learning-path {
+            margin-top: 40px;
+            position: relative;
+            padding-left: 70px;
+        }
+
+        .path-line {
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 8px;
+            background-color: #e5e5e5;
+            border-radius: 4px;
+            z-index: 1;
+        }
+
+        .level {
+            position: relative;
+            margin-bottom: 30px;
+            z-index: 2;
+        }
+
+        .level-bubble {
+            position: absolute;
+            left: -70px;
+            width: 60px;
+            height: 60px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .level-bubble.locked {
+            background-color: var(--locked);
+            cursor: not-allowed;
+        }
+
+        .level-bubble.unlocked {
+            background-color: var(--secondary);
+            border: 3px solid var(--primary);
+        }
+
+        .level-bubble.current {
+            background-color: var(--current);
+            border: 3px solid #4ab1ff;
+        }
+
+        .level-bubble.completed {
+            background-color: var(--completed);
+            border: 3px solid var(--primary);
+        }
+
+        .level-bubble:not(.locked):hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .level-content {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .level-content:before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 20px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid white;
+        }
+
+        .level-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .level-description {
+            color: var(--text-light);
+            font-size: 14px;
+        }
+
+        .quiz-container {
+            background-color: white;
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-progress {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .progress-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #e5e5e5;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        .progress-dot.completed {
+            background-color: var(--primary);
+        }
+
+        .progress-dot.current {
+            background-color: var(--current);
+        }
+
+        .quiz-question {
+            font-size: 22px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .quiz-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .quiz-option {
+            background-color: white;
+            border: 2px solid #e5e5e5;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quiz-option:hover {
+            border-color: var(--primary);
+        }
+
+        .quiz-option.selected {
+            border-color: var(--primary);
+            background-color: #f0f8ea;
+        }
+
+        .quiz-option.correct {
+            border-color: var(--right);
+            background-color: #e6f8e0;
+        }
+
+        .quiz-option.incorrect {
+            border-color: var(--wrong);
+            background-color: #ffebeb;
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: Ascending;
+            width: 100%;
+            transition: background-color 0.2s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .submit-btn:disabled {
+            background-color: var(--locked);
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: var(--border-radius);
+        }
+
+        .feedback.correct {
+            background-color: #e6f8e0;
+            color: var(--right);
+        }
+
+        .feedback.incorrect {
+            background-color: #ffebeb;
+            color: var(--wrong);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fadeIn {
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .bounce {
+            animation: bounce 0.5s ease;
+        }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f0f;
+            position: absolute;
+            top: 0;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Happy Talk</div>
+        <div class="tagline">Learn languages the fun way!</div>
+    </header>
+
+    <div class="container">
+        <div id="language-selection" class="fadeIn">
+            <h2>Choose a language to learn</h2>
+            <div class="language-grid">
+                <div class="language-card" data-language="English" data-flag="🇺🇸"><div class="language-flag">🇺🇸</div><div class="language-name">English</div></div>
+                <div class="language-card" data-language="Spanish" data-flag="🇪🇸"><div class="language-flag">🇪🇸</div><div class="language-name">Spanish</div></div>
+                <div class="language-card" data-language="French" data-flag="🇫🇷"><div class="language-flag">🇫🇷</div><div class="language-name">French</div></div>
+                <div class="language-card" data-language="German" data-flag="🇩🇪"><div class="language-flag">🇩🇪</div><div class="language-name">German</div></div>
+                <div class="language-card" data-language="Japanese" data-flag="🇯🇵"><div class="language-flag">🇯🇵</div><div class="language-name">Japanese</div></div>
+                <div class="language-card" data-language="Italian" data-flag="🇮🇹"><div class="language-flag">🇮🇹</div><div class="language-name">Italian</div></div>
+                <div class="language-card" data-language="Korean" data-flag="🇰🇷"><div class="language-flag">🇰🇷</div><div class="language-name">Korean</div></div>
+                <div class="language-card" data-language="Chinese" data-flag="🇨🇳"><div class="language-flag">🇨🇳</div><div class="language-name">Chinese</div></div>
+                <div class="language-card" data-language="Portuguese" data-flag="🇵🇹"><div class="language-flag">🇵🇹</div><div class="language-name">Portuguese</div></div>
+                <div class="language-card" data-language="Hindi" data-flag="🇮🇳"><div class="language-flag">🇮🇳</div><div class="language-name">Hindi</div></div>
+                <div class="language-card" data-language="Arabic" data-flag="🇦🇪"><div class="language-flag">🇦🇪</div><div class="language-name">Arabic</div></div>
+                <div class="language-card" data-language="Russian" data-flag="🇷🇺"><div class="language-flag">🇷🇺</div><div class="language-name">Russian</div></div>
+            </div>
+        </div>
+
+        <div id="learning-path-screen" class="hidden fadeIn">
+            <button class="back-btn" id="back-to-languages">←</button>
+            <div class="language-header">
+                <div class="language-icon" id="selected-language-icon">🇺🇸</div>
+                <div>
+                    <div class="language-title" id="selected-language-title">English</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="language-progress"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="learning-path">
+                <div class="path-line"></div>
+            </div>
+        </div>
+
+        <div id="quiz-screen" class="hidden fadeIn">
+            <button class="back-btn" id="back-to-path">←</button>
+            <div class="quiz-container">
+                <div class="quiz-progress" id="quiz-progress"></div>
+                <div class="quiz-question" id="question-text"></div>
+                <div class="quiz-options" id="options-container"></div>
+                <button class="submit-btn" id="submit-answer" disabled>Check Answer</button>
+                <div class="feedback hidden" id="feedback"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const state = {
+            selectedLanguage: null,
+            currentLevel: 1,
+            unlockedLevels: [1],
+            completedLevels: [],
+            currentQuiz: {
+                level: null,
+                questionIndex: 0,
+                questions: [],
+                selectedOption: null,
+                correctAnswers: 0
+            }
+        };
+
+        const languageSelection = document.getElementById('language-selection');
+        const learningPathScreen = document.getElementById('learning-path-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const backToLanguagesBtn = document.getElementById('back-to-languages');
+        const backToPathBtn = document.getElementById('back-to-path');
+        const selectedLanguageIcon = document.getElementById('selected-language-icon');
+        const selectedLanguageTitle = document.getElementById('selected-language-title');
+        const languageProgress = document.getElementById('language-progress');
+        const quizProgressContainer = document.getElementById('quiz-progress');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const submitAnswerBtn = document.getElementById('submit-answer');
+        const feedbackElement = document.getElementById('feedback');
+
+        const levelData = [
+            { id: 1, title: "Basics 1", description: "Learn the essentials", emoji: "👋" },
+            { id: 2, title: "Greetings", description: "Say hello and goodbye", emoji: "🙋" },
+            { id: 3, title: "Food & Drink", description: "Order at restaurants", emoji: "🍔" },
+            { id: 4, title: "Colors & Clothes", description: "Describe what you see", emoji: "👕" },
+            { id: 5, title: "Numbers & Time", description: "Count and tell time", emoji: "🕒" },
+            { id: 6, title: "Family", description: "Talk about relatives", emoji: "👪" },
+            { id: 7, title: "Places", description: "Navigate your surroundings", emoji: "🏙️" },
+            { id: 8, title: "Hobbies", description: "Discuss interests", emoji: "⚽" },
+            { id: 9, title: "Travel", description: "Plan your journey", emoji: "✈️" },
+            { id: 10, title: "Conversations", description: "Put it all together", emoji: "💬" }
+        ];
+
+        const questionBank = {
+            English: [
+                { question: "What is the correct greeting for morning?", options: ["Good morning", "Good night", "Good evening", "Good afternoon"], correctAnswer: 0 },
+                { question: "Which word means a place where you can buy books?", options: ["Grocery store", "Bookstore", "Restaurant", "Cinema"], correctAnswer: 1 },
+                { question: "What color is a traditional stop sign?", options: ["Blue", "Green", "Red", "Yellow"], correctAnswer: 2 },
+                { question: "Which of these is a fruit?", options: ["Potato", "Carrot", "Apple", "Broccoli"], correctAnswer: 2 },
+                { question: "What does 'Hello' mean?", options: ["Goodbye", "A greeting", "Thank you", "Excuse me"], correctAnswer: 1 },
+                { question: "What is the past tense of 'run'?", options: ["Running", "Ran", "Runned", "Runs"], correctAnswer: 1 },
+                { question: "What does 'delicious' describe?", options: ["Something that tastes good", "Something that looks beautiful", "Something that smells bad", "Something that feels soft"], correctAnswer: 0 },
+                { question: "Which word describes the weather when water falls from clouds?", options: ["Sunny", "Cloudy", "Rainy", "Windy"], correctAnswer: 2 },
+                { question: "What is the opposite of 'hot'?", options: ["Warm", "Cold", "Wet", "Dry"], correctAnswer: 1 },
+                { question: "Which of these is a piece of furniture?", options: ["Banana", "Chair", "Dog", "Tree"], correctAnswer: 1 }
+            ],
+            Spanish: [
+                { question: "¿Cómo se dice 'hello' en español?", options: ["Adiós", "Hola", "Gracias", "Por favor"], correctAnswer: 1 },
+                { question: "¿Cómo se dice 'thank you' en español?", options: ["Gracias", "Por favor", "De nada", "Hola"], correctAnswer: 0 },
+                { question: "¿Qué significa 'agua'?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "¿Cuál es la traducción de 'good morning'?", options: ["Buenas noches", "Buenas tardes", "Buenos días", "Buen provecho"], correctAnswer: 2 },
+                { question: "¿Cómo se dice 'apple' en español?", options: ["Plátano", "Manzana", "Naranja", "Uva"], correctAnswer: 1 },
+                { question: "¿Qué número es 'cinco'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "¿Cómo se dice 'yes' en español?", options: ["No", "Tal vez", "Sí", "Quizás"], correctAnswer: 2 },
+                { question: "¿Cuál es el color 'rojo'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "¿Qué significa 'casa'?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "¿Cómo preguntas '¿Cómo estás?'?", options: ["What's your name?", "How old are you?", "How are you?", "Where are you from?"], correctAnswer: 2 }
+            ],
+            French: [
+                { question: "Comment dit-on 'hello' en français?", options: ["Au revoir", "Bonjour", "Merci", "S'il vous plaît"], correctAnswer: 1 },
+                { question: "Comment dit-on 'thank you' en français?", options: ["Merci", "S'il vous plaît", "De rien", "Bonjour"], correctAnswer: 0 },
+                { question: "Que signifie 'eau'?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "Quelle est la traduction de 'good morning'?", options: ["Bonsoir", "Bonne journée", "Bonjour", "Bon appétit"], correctAnswer: 2 },
+                { question: "Comment dit-on 'apple' en français?", options: ["Banane", "Pomme", "Orange", "Raisin"], correctAnswer: 1 },
+                { question: "Quel numéro est 'cinq'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "Comment dit-on 'yes' en français?", options: ["Non", "Peut-être", "Oui", "Parfois"], correctAnswer: 2 },
+                { question: "Quelle est la couleur 'rouge'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "Que signifie 'maison'?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "Comment demandez-vous 'Comment allez-vous?'?", options: ["What's your name?", "How old are you?", "How are you?", "Where are you from?"], correctAnswer: 2 }
+            ],
+            German: [
+                { question: "Wie sagt man 'hello' auf Deutsch?", options: ["Auf Wiedersehen", "Hallo", "Danke", "Bitte"], correctAnswer: 1 },
+                { question: "Wie sagt man 'thank you' auf Deutsch?", options: ["Danke", "Bitte", "Gern geschehen", "Hallo"], correctAnswer: 0 },
+                { question: "Was bedeutet 'Wasser'?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "Was ist die Übersetzung von 'good morning'?", options: ["Guten Abend", "Guten Tag", "Guten Morgen", "Guten Appetit"], correctAnswer: 2 },
+                { question: "Wie sagt man 'apple' auf Deutsch?", options: ["Banane", "Apfel", "Orange", "Traube"], correctAnswer: 1 },
+                { question: "Welche Nummer ist 'fünf'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "Wie sagt man 'yes' auf Deutsch?", options: ["Nein", "Vielleicht", "Ja", "Manchmal"], correctAnswer: 2 },
+                { question: "Welche Farbe ist 'rot'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "Was bedeutet 'Haus'?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "Wie fragt man 'Wie geht es dir?'?", options: ["What's your name?", "How old are you?", "How are you?", "Where are you from?"], correctAnswer: 2 }
+            ],
+            Japanese: [
+                { question: "How do you say 'hello' in Japanese?", options: ["さようなら (Sayōnara)", "こんにちは (Konnichiwa)", "ありがとう (Arigatō)", "お願いします (Onegaishimasu)"], correctAnswer: 1 },
+                { question: "How do you say 'thank you' in Japanese?", options: ["ありがとう (Arigatō)", "お願いします (Onegaishimasu)", "どういたしまして (Dōitashimashite)", "こんにちは (Konnichiwa)"], correctAnswer: 0 },
+                { question: "What does '水 (Mizu)' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["こんばんは (Konbanwa)", "こんにちは (Konnichiwa)", "おはようございます (Ohayō gozaimasu)", "いただきます (Itadakimasu)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Japanese?", options: ["バナナ (Banana)", "りんご (Ringo)", "オレンジ (Orenji)", "ぶどう (Budō)"], correctAnswer: 1 },
+                { question: "Which number is '五 (Go)'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Japanese?", options: ["いいえ (Iie)", "たぶん (Tabun)", "はい (Hai)", "ときどき (Tokidoki)"], correctAnswer: 2 },
+                { question: "What color is '赤 (Aka)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does '家 (Ie)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Japanese?", options: ["お名前は何ですか？ (Onamae wa nan desu ka?)", "おいくつですか？ (Oikutsu desu ka?)", "お元気ですか？ (Ogenki desu ka?)", "どこから来ましたか？ (Doko kara kimashita ka?)"], correctAnswer: 2 }
+            ],
+            Italian: [
+                { question: "Come si dice 'hello' in italiano?", options: ["Arrivederci", "Ciao", "Grazie", "Per favore"], correctAnswer: 1 },
+                { question: "Come si dice 'thank you' in italiano?", options: ["Grazie", "Per favore", "Prego", "Ciao"], correctAnswer: 0 },
+                { question: "Cosa significa 'acqua'?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "Qual è la traduzione di 'good morning'?", options: ["Buonasera", "Buon pomeriggio", "Buongiorno", "Buon appetito"], correctAnswer: 2 },
+                { question: "Come si dice 'apple' in italiano?", options: ["Banana", "Mela", "Arancia", "Uva"], correctAnswer: 1 },
+                { question: "Quale numero è 'cinque'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "Come si dice 'yes' in italiano?", options: ["No", "Forse", "Sì", "A volte"], correctAnswer: 2 },
+                { question: "Quale colore è 'rosso'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "Cosa significa 'casa'?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "Come si chiede 'Come stai?'?", options: ["What's your name?", "How old are you?", "How are you?", "Where are you from?"], correctAnswer: 2 }
+            ],
+            Korean: [
+                { question: "How do you say 'hello' in Korean?", options: ["안녕하세요 (Annyeonghaseyo)", "감사합니다 (Gamsahamnida)", "다시 만나요 (Dasi mannayo)", "부탁합니다 (Butakhamnida)"], correctAnswer: 0 },
+                { question: "How do you say 'thank you' in Korean?", options: ["안녕하세요 (Annyeonghaseyo)", "감사합니다 (Gamsahamnida)", "괜찮아요 (Gwaenchanhayo)", "미안합니다 (Mianhamnida)"], correctAnswer: 1 },
+                { question: "What does '물 (Mul)' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["좋은 저녁 (Joeun jeonyeok)", "좋은 오후 (Joeun ohu)", "좋은 아침 (Joeun achim)", "맛있게 드세요 (Masitge deuseyo)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Korean?", options: ["바나나 (Banana)", "사과 (Sagua)", "오렌지 (Orenji)", "포도 (Podo)"], correctAnswer: 1 },
+                { question: "Which number is '오 (O)'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Korean?", options: ["아니요 (Aniyo)", "아마도 (Amado)", "네 (Ne)", "가끔 (Gakkeum)"], correctAnswer: 2 },
+                { question: "What color is '빨강 (Ppalgan)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does '집 (Jip)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Korean?", options: ["이름이 뭐예요? (Ireumi mwoyeyo?)", "몇 살이에요? (Myeot salieyo?)", "잘 지내세요? (Jal jinaeseyo?)", "어디서 오셨어요? (Eodiseo osyeosseoyo?)"], correctAnswer: 2 }
+            ],
+            Chinese: [
+                { question: "How do you say 'hello' in Chinese?", options: ["再见 (Zàijiàn)", "你好 (Nǐ hǎo)", "谢谢 (Xièxiè)", "请 (Qǐng)"], correctAnswer: 1 },
+                { question: "How do you say 'thank you' in Chinese?", options: ["谢谢 (Xièxiè)", "请 (Qǐng)", "不客气 (Bù kèqì)", "你好 (Nǐ hǎo)"], correctAnswer: 0 },
+                { question: "What does '水 (Shuǐ)' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["晚上好 (Wǎnshàng hǎo)", "下午好 (Xiàwǔ hǎo)", "早上好 (Zǎoshàng hǎo)", "吃好 (Chī hǎo)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Chinese?", options: ["香蕉 (Xiāngjiāo)", "苹果 (Píngguǒ)", "橙子 (Chéngzi)", "葡萄 (Pútáo)"], correctAnswer: 1 },
+                { question: "Which number is '五 (Wǔ)'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Chinese?", options: ["不 (Bù)", "也许 (Yěxǔ)", "是 (Shì)", "有时候 (Yǒushíhòu)"], correctAnswer: 2 },
+                { question: "What color is '红 (Hóng)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does '房子 (Fángzi)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Chinese?", options: ["你叫什么名字？ (Nǐ jiào shénme míngzì?)", "你多大？ (Nǐ duō dà?)", "你好吗？ (Nǐ hǎo ma?)", "你从哪里来？ (Nǐ cóng nǎlǐ lái?)"], correctAnswer: 2 }
+            ],
+            Portuguese: [
+                { question: "Como se diz 'hello' em português?", options: ["Adeus", "Olá", "Obrigado", "Por favor"], correctAnswer: 1 },
+                { question: "Como se diz 'thank you' em português?", options: ["Obrigado", "Por favor", "De nada", "Olá"], correctAnswer: 0 },
+                { question: "O que significa 'água'?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "Qual é a tradução de 'good morning'?", options: ["Boa noite", "Boa tarde", "Bom dia", "Bom apetite"], correctAnswer: 2 },
+                { question: "Como se diz 'apple' em português?", options: ["Banana", "Maçã", "Laranja", "Uva"], correctAnswer: 1 },
+                { question: "Qual número é 'cinco'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "Como se diz 'yes' em português?", options: ["Não", "Talvez", "Sim", "Às vezes"], correctAnswer: 2 },
+                { question: "Qual cor é 'vermelho'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "O que significa 'casa'?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "Como se pergunta 'Como você está?'?", options: ["What's your name?", "How old are you?", "How are you?", "Where are you from?"], correctAnswer: 2 }
+            ],
+            Hindi: [
+                { question: "How do you say 'hello' in Hindi?", options: ["अलविदा (Alvida)", "नमस्ते (Namaste)", "धन्यवाद (Dhanyavaad)", "कृपया (Kripaya)"], correctAnswer: 1 },
+                { question: "How do you say 'thank you' in Hindi?", options: ["धन्यवाद (Dhanyavaad)", "कृपया (Kripaya)", "आपका स्वागत है (Aapka swagat hai)", "नमस्ते (Namaste)"], correctAnswer: 0 },
+                { question: "What does 'पानी (Paani)' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["शुभ रात्रि (Shubh raatri)", "शुभ दोपहर (Shubh dopahar)", "शुभ प्रभात (Shubh prabhaat)", "स्वादिष्ट खाना (Swadisht khaana)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Hindi?", options: ["केला (Kela)", "सेब (Seb)", "संतरा (Santra)", "अंगूर (Angoor)"], correctAnswer: 1 },
+                { question: "Which number is 'पांच (Paanch)'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Hindi?", options: ["नहीं (Nahi)", "शायद (Shaayad)", "हाँ (Haan)", "कभी-कभी (Kabhi-kabhi)"], correctAnswer: 2 },
+                { question: "What color is 'लाल (Laal)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does 'घर (Ghar)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Hindi?", options: ["आपका नाम क्या है? (Aapka naam kya hai?)", "आपकी उम्र क्या है? (Aapki umr kya hai?)", "आप कैसे हैं? (Aap kaise hain?)", "आप कहाँ से हैं? (Aap kahaan se hain?)"], correctAnswer: 2 }
+            ],
+            Arabic: [
+                { question: "How do you say 'hello' in Arabic?", options: ["وداعًا (Wada'an)", "مرحبًا (Marhaban)", "شكرًا (Shukran)", "من فضلك (Min fadlik)"], correctAnswer: 1 },
+                { question: "How do you say 'thank you' in Arabic?", options: ["شكرًا (Shukran)", "من فضلك (Min fadlik)", "على الرحب والسعة ('Ala alrahb walsi'a)", "مرحبًا (Marhaban)"], correctAnswer: 0 },
+                { question: "What does 'ماء (Mā')' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["مساء الخير (Masā' al-khayr)", "ظهر الخير (Zuhr al-khayr)", "صباح الخير (Sabāh al-khayr)", "بالعافية (Bil'āfiya)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Arabic?", options: ["موز (Mawz)", "تفاحة (Tuffāha)", "برتقال (Burtuqāl)", "عنب ('Inab)"], correctAnswer: 1 },
+                { question: "Which number is 'خمسة (Khamsa)'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Arabic?", options: ["لا (Lā)", "ربما (Rubamā)", "نعم (Na'am)", "أحيانًا (Ahyānan)"], correctAnswer: 2 },
+                { question: "What color is 'أحمر (Ahmar)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does 'بيت (Bayt)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Arabic?", options: ["ما اسمك؟ (Mā ismak?)", "كم عمرك؟ (Kam 'umrak?)", "كيف حالك؟ (Kayf hālak?)", "من أين أنت؟ (Min ayn anta?)"], correctAnswer: 2 }
+            ],
+            Russian: [
+                { question: "How do you say 'hello' in Russian?", options: ["До свидания (Do svidaniya)", "Здравствуйте (Zdravstvuyte)", "Спасибо (Spasibo)", "Пожалуйста (Pozhaluysta)"], correctAnswer: 1 },
+                { question: "How do you say 'thank you' in Russian?", options: ["Спасибо (Spasibo)", "Пожалуйста (Pozhaluysta)", "Не за что (Ne za chto)", "Здравствуйте (Zdravstvuyte)"], correctAnswer: 0 },
+                { question: "What does 'вода (Voda)' mean?", options: ["Fire", "Earth", "Water", "Air"], correctAnswer: 2 },
+                { question: "What is the translation of 'good morning'?", options: ["Добрый вечер (Dobryy vecher)", "Добрый день (Dobryy den')", "Доброе утро (Dobroe utro)", "Приятного аппетита (Priyatnogo appetita)"], correctAnswer: 2 },
+                { question: "How do you say 'apple' in Russian?", options: ["Банан (Banan)", "Яблоко (Yabloko)", "Апельсин (Apel'sin)", "Виноград (Vinograd)"], correctAnswer: 1 },
+                { question: "Which number is 'пять (Pyat')'?", options: ["4", "5", "6", "7"], correctAnswer: 1 },
+                { question: "How do you say 'yes' in Russian?", options: ["Нет (Net)", "Может быть (Mozhet byt')", "Да (Da)", "Иногда (Inogda)"], correctAnswer: 2 },
+                { question: "What color is 'красный (Krasnyy)'?", options: ["Blue", "Yellow", "Green", "Red"], correctAnswer: 3 },
+                { question: "What does 'дом (Dom)' mean?", options: ["Car", "House", "Cat", "Store"], correctAnswer: 1 },
+                { question: "How do you ask 'How are you?' in Russian?", options: ["Как тебя зовут? (Kak tebya zovut?)", "Сколько тебе лет? (Skol'ko tebe let?)", "Как дела? (Kak dela?)", "Откуда ты? (Otkuda ty?)"], correctAnswer: 2 }
+            ]
+        };
+
+        function showScreen(screen) {
+            languageSelection.classList.add('hidden');
+            learningPathScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            screen.classList.remove('hidden');
+        }
+
+        function renderLevels() {
+            const learningPath = learningPathScreen.querySelector('.learning-path');
+            learningPath.innerHTML = '<div class="path-line"></div>';
+            levelData.forEach(level => {
+                const levelElement = document.createElement('div');
+                levelElement.className = 'level';
+                let status = state.unlockedLevels.includes(level.id) ? 'unlocked' : 'locked';
+                if (state.completedLevels.includes(level.id)) status = 'completed';
+                if (level.id === state.currentLevel) status = 'current';
+                levelElement.innerHTML = `
+                    <div class="level-bubble ${status}" data-level="${level.id}">${level.emoji}</div>
+                    <div class="level-content">
+                        <div class="level-title">${level.title}</div>
+                        <div class="level-description">${level.description}</div>
+                    </div>
+                `;
+                learningPath.appendChild(levelElement);
+            });
+            languageProgress.style.width = `${(state.completedLevels.length / levelData.length) * 100}%`;
+        }
+
+        function startQuiz(levelId) {
+            state.currentQuiz.level = levelId;
+            state.currentQuiz.questionIndex = 0;
+            state.currentQuiz.correctAnswers = 0;
+            state.currentQuiz.questions = questionBank[state.selectedLanguage].slice(0, 10);
+            showScreen(quizScreen);
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const { questionIndex, questions } = state.currentQuiz;
+            if (questionIndex >= questions.length) {
+                completeLevel();
+                return;
+            }
+            quizProgressContainer.innerHTML = '';
+            for (let i = 0; i < questions.length; i++) {
+                const dot = document.createElement('div');
+                dot.className = 'progress-dot';
+                if (i < questionIndex) dot.classList.add('completed');
+                if (i === questionIndex) dot.classList.add('current');
+                quizProgressContainer.appendChild(dot);
+            }
+            const question = questions[questionIndex];
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'quiz-option';
+                optionElement.textContent = option;
+                optionElement.dataset.index = index;
+                optionsContainer.appendChild(optionElement);
+            });
+            submitAnswerBtn.disabled = true;
+            feedbackElement.classList.add('hidden');
+            state.currentQuiz.selectedOption = null;
+        }
+
+        function completeLevel() {
+            state.completedLevels.push(state.currentQuiz.level);
+            if (state.currentQuiz.level < levelData.length) {
+                state.unlockedLevels.push(state.currentQuiz.level + 1);
+                state.currentLevel = state.currentQuiz.level + 1;
+            }
+            showScreen(learningPathScreen);
+            renderLevels();
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = `${Math.random() * 100}vw`;
+                confetti.style.backgroundColor = ['#ff0', '#f00', '#0f0', '#00f'][Math.floor(Math.random() * 4)];
+                confetti.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+
+        document.querySelectorAll('.language-card').forEach(card => {
+            card.addEventListener('click', () => {
+                state.selectedLanguage = card.dataset.language;
+                state.currentLevel = 1;
+                state.unlockedLevels = [1];
+                state.completedLevels = [];
+                selectedLanguageIcon.textContent = card.dataset.flag;
+                selectedLanguageTitle.textContent = card.dataset.language;
+                showScreen(learningPathScreen);
+                renderLevels();
+            });
+        });
+
+        learningPathScreen.addEventListener('click', e => {
+            const bubble = e.target.closest('.level-bubble');
+            if (bubble && !bubble.classList.contains('locked')) {
+                startQuiz(parseInt(bubble.dataset.level));
+            }
+        });
+
+        backToLanguagesBtn.addEventListener('click', () => showScreen(languageSelection));
+        backToPathBtn.addEventListener('click', () => showScreen(learningPathScreen));
+
+        optionsContainer.addEventListener('click', e => {
+            const option = e.target.closest('.quiz-option');
+            if (!option) return;
+            optionsContainer.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+            state.currentQuiz.selectedOption = parseInt(option.dataset.index);
+            submitAnswerBtn.disabled = false;
+        });
+
+        submitAnswerBtn.addEventListener('click', () => {
+            const { selectedOption, questions, questionIndex } = state.currentQuiz;
+            const correct = selectedOption === questions[questionIndex].correctAnswer;
+            if (correct) state.currentQuiz.correctAnswers++;
+            optionsContainer.querySelectorAll('.quiz-option').forEach((opt, index) => {
+                if (index === questions[questionIndex].correctAnswer) {
+                    opt.classList.add('correct');
+                } else if (index === selectedOption) {
+                    opt.classList.add('incorrect');
+                }
+            });
+            feedbackElement.textContent = correct ? 'Correct!' : 'Incorrect!';
+            feedbackElement.classList.remove('hidden');
+            feedbackElement.classList.add(correct ? 'correct' : 'incorrect');
+            if (correct) createConfetti();
+            submitAnswerBtn.disabled = true;
+            setTimeout(() => {
+                state.currentQuiz.questionIndex++;
+                renderQuizQuestion();
+            }, 1500);
+        });
+
+        showScreen(languageSelection);
+    </script>
+</body>
+</html>
