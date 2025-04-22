@@ -1,0 +1,1435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Master - Learn English for Free</title>
+    <style>
+        :root {
+            --primary-color: #58cc02;
+            --secondary-color: #1cb0f6;
+            --dark-color: #3c3c3c;
+            --light-color: #f8f8f8;
+            --correct-color: #4caf50;
+            --incorrect-color: #f44336;
+            --streak-color: #ff9500;
+            --badge-color: #ffd700;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .xp-bar, .level-display {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .xp-progress {
+            width: 100px;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .xp-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            transition: width 0.5s ease;
+        }
+
+        .streak {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            color: var(--streak-color);
+            font-weight: bold;
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .badge {
+            font-size: 1.2rem;
+            opacity: 0.3;
+        }
+
+        .badge.earned {
+            opacity: 1;
+            animation: badgeEarn 0.5s ease;
+        }
+
+        @keyframes badgeEarn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        .main-container {
+            display: flex;
+            min-height: calc(100vh - 70px);
+        }
+
+        .timeline-container {
+            width: 350px;
+            background-color: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 1rem;
+            overflow-y: auto;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50px;
+            width: 4px;
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .lesson-node {
+            position: relative;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .lesson-node:hover {
+            transform: translateX(5px);
+        }
+
+        .node-icon {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+            z-index: 1;
+            border: 4px solid #e0e0e0;
+            position: relative;
+            left: 30px;
+        }
+
+        .lesson-node.unlocked .node-icon {
+            border-color: var(--secondary-color);
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .lesson-node.active .node-icon {
+            border-color: var(--primary-color);
+            background-color: var(--primary-color);
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .lesson-node.completed .node-icon {
+            border-color: var(--primary-color);
+            background-color: white;
+            color: var(--primary-color);
+        }
+
+        .lesson-description {
+            background-color: white;
+            border-radius: 10px;
+            padding: 0.8rem;
+            width: calc(100% - 80px);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            left: 30px;
+        }
+
+        .lesson-description::before {
+            content: '';
+            position: absolute;
+            top: 15px;
+            left: -10px;
+            width: 0;
+            height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 10px solid white;
+        }
+
+        .lesson-title {
+            font-weight: bold;
+            margin-bottom: 0.3rem;
+        }
+
+        .lesson-summary {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .content-container {
+            flex: 1;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .lesson-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .lesson-title-large {
+            font-size: 2rem;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .lesson-progress {
+            color: #666;
+        }
+
+        .exercise-container {
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 1.5rem;
+        }
+
+        .exercise-question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .exercise-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .option-btn {
+            padding: 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background-color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover {
+            border-color: var(--secondary-color);
+        }
+
+        .option-btn.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(88, 204, 2, 0.1);
+        }
+
+        .fill-blank-input {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .sentence-order {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .sentence-word {
+            padding: 0.5rem 1rem;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: move;
+        }
+
+        .sentence-word.dragging {
+            opacity: 0.5;
+        }
+
+        .exercise-feedback {
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            text-align: center;
+            display: none;
+        }
+
+        .feedback-correct {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--correct-color);
+            display: block;
+        }
+
+        .feedback-incorrect {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--incorrect-color);
+            display: block;
+        }
+
+        .exercise-submit, .exercise-next {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 0 auto;
+        }
+
+        .exercise-submit {
+            display: none;
+        }
+
+        .exercise-next {
+            display: none;
+        }
+
+        .exercise-submit:hover, .exercise-next:hover {
+            background-color: #4bb001;
+            transform: translateY(-2px);
+        }
+
+        .progress-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 600px;
+            margin-bottom: 1rem;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 0 1rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .completion-message {
+            text-align: center;
+            padding: 2rem;
+            display: none;
+        }
+
+        .completion-title {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .completion-xp {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .continue-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .continue-btn:hover {
+            background-color: #4bb001;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(88, 204, 2, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .timeline-container {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                height: 300px;
+                overflow-y: auto;
+            }
+
+            .content-container {
+                padding: 1rem;
+            }
+
+            .exercise-options {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">English Master</div>
+        <div class="user-info">
+            <div class="level-display">
+                <span>Level:</span>
+                <span id="level-display">1</span>
+            </div>
+            <div class="xp-bar">
+                <span>XP:</span>
+                <div class="xp-progress">
+                    <div class="xp-fill" id="xp-fill"></div>
+                </div>
+            </div>
+            <div class="streak">
+                🔥 <span id="streak-count">1</span>
+            </div>
+            <div class="badges">
+                <span class="badge" id="badge-novice" title="Novice Learner">🏆</span>
+                <span class="badge" id="badge-streak" title="5-Day Streak">🔥</span>
+                <span class="badge" id="badge-master" title="Master Learner">🌟</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="timeline-container">
+            <div class="timeline" id="timeline">
+                <!-- Timeline will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="content-container">
+            <div class="lesson-header">
+                <h1 class="lesson-title-large" id="current-lesson-title">Basics 1</h1>
+                <div class="lesson-progress" id="lesson-progress">Lesson 1 of 10</div>
+            </div>
+
+            <div class="exercise-container" id="exercise-container">
+                <div class="exercise-question" id="exercise-question"></div>
+                <div class="exercise-options" id="exercise-options"></div>
+                <div class="sentence-order" id="sentence-order"></div>
+                <input type="text" class="fill-blank-input" id="fill-blank-input" style="display: none;">
+                <div class="exercise-feedback" id="exercise-feedback"></div>
+                <button class="exercise-submit" id="exercise-submit">Submit</button>
+                <button class="exercise-next" id="exercise-next">Continue</button>
+            </div>
+
+            <div class="progress-container">
+                <span>0%</span>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span>100%</span>
+                <div class="progress-text" id="progress-text">0/8</div>
+            </div>
+
+            <div class="completion-message" id="completion-message">
+                <h2 class="completion-title">Lesson Complete!</h2>
+                <div class="completion-xp" id="completion-xp">+15 XP Earned</div>
+                <button class="continue-btn" id="continue-btn">Continue to Next Lesson</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // App Data
+        const lessons = [
+            {
+                id: 1,
+                title: "Basics 1",
+                emoji: "📖",
+                summary: "Learn basic greetings and common words",
+                unlocked: true,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la manzana'",
+                        options: ["Apple", "Banana", "Orange", "Grape"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el libro'",
+                        options: ["Book", "Pen", "Table", "Chair"],
+                        correct: 0
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word with its meaning: 'Hello'",
+                        options: ["Hola", "Adiós", "Gracias", "Por favor"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'gracias'",
+                        options: ["Please", "Thank you", "Sorry", "Excuse me"],
+                        correct: 1
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: ___ morning!",
+                        answer: "Good",
+                        hint: "Common morning greeting"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: is / My / John / name",
+                        words: ["My", "name", "is", "John"],
+                        correct: ["My", "name", "is", "John"]
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word with its meaning: 'Goodbye'",
+                        options: ["Hola", "Adiós", "Buenos días", "Buenas noches"],
+                        correct: 1
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'por favor'",
+                        options: ["Please", "Thank you", "Sorry", "Good"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Basics 2",
+                emoji: "🔄",
+                summary: "Common phrases and simple sentences",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: '¿Cómo estás?'",
+                        options: ["What's your name?", "How are you?", "Where are you from?", "How old are you?"],
+                        correct: 1
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'Me llamo Juan'",
+                        options: ["I am Juan", "My name is Juan", "Juan is my friend", "I like Juan"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'I am from...'",
+                        options: ["Soy de...", "Voy a...", "Tengo...", "Quiero..."],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: I ___ hungry.",
+                        answer: "am",
+                        hint: "Present tense of 'be'"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: from / I / Spain / am",
+                        words: ["I", "am", "from", "Spain"],
+                        correct: ["I", "am", "from", "Spain"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'Tengo hambre'",
+                        options: ["I am thirsty", "I am hungry", "I am tired", "I am happy"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'What time is it?'",
+                        options: ["¿Qué hora es?", "¿Qué día es hoy?", "¿Cuánto cuesta?", "¿Dónde está?"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'Buenas noches'",
+                        options: ["Good morning", "Good afternoon", "Good night", "Good evening"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                id: 3,
+                title: "Food",
+                emoji: "🍎",
+                summary: "Food vocabulary and ordering meals",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el desayuno'",
+                        options: ["Lunch", "Dinner", "Breakfast", "Snack"],
+                        correct: 2
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'quiero un café'",
+                        options: ["I have a coffee", "I want a coffee", "I like coffee", "I don't like coffee"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Water'",
+                        options: ["Agua", "Leche", "Jugo", "Vino"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: Can I have the ___ please?",
+                        answer: "menu",
+                        hint: "What you look at to order food"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: want / I / water / some",
+                        words: ["I", "want", "some", "water"],
+                        correct: ["I", "want", "some", "water"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la cuenta, por favor'",
+                        options: ["The menu, please", "The bill, please", "The table, please", "The food, please"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'I would like...'",
+                        options: ["Me gusta...", "Quiero...", "Me gustaría...", "Tengo..."],
+                        correct: 2
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el postre'",
+                        options: ["Dessert", "Main course", "Appetizer", "Drink"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 4,
+                title: "Travel",
+                emoji: "✈️",
+                summary: "Travel phrases and directions",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el aeropuerto'",
+                        options: ["Airport", "Train station", "Bus stop", "Hotel"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: '¿Dónde está el hotel?'",
+                        options: ["Where is the hotel?", "What is the hotel?", "When is the hotel?", "Why is the hotel?"],
+                        correct: 0
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Train'",
+                        options: ["Tren", "Autobús", "Avión", "Barco"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: I need a ___ to London.",
+                        answer: "ticket",
+                        hint: "Required for travel"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: to / I / go / want / Paris",
+                        words: ["I", "want", "to", "go", "to", "Paris"],
+                        correct: ["I", "want", "to", "go", "to", "Paris"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'un boleto de ida y vuelta'",
+                        options: ["A one-way ticket", "A round-trip ticket", "A bus ticket", "A train ticket"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'How much is the ticket?'",
+                        options: ["¿Cuánto cuesta el boleto?", "¿Dónde está el boleto?", "¿Qué es el boleto?", "¿Cuándo es el boleto?"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la maleta'",
+                        options: ["Suitcase", "Backpack", "Ticket", "Passport"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 5,
+                title: "Shopping",
+                emoji: "🛍️",
+                summary: "Shopping vocabulary and phrases",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la tienda'",
+                        options: ["The store", "The mall", "The market", "The shop"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: '¿Cuánto cuesta?'",
+                        options: ["How much is it?", "What is it?", "Where is it?", "When is it?"],
+                        correct: 0
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Cash'",
+                        options: ["Efectivo", "Tarjeta", "Cheque", "Dinero"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: Can I pay with a credit ___?",
+                        answer: "card",
+                        hint: "Common payment method"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: this / try / I / can / on",
+                        words: ["Can", "I", "try", "this", "on"],
+                        correct: ["Can", "I", "try", "this", "on"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'Quiero probármelo'",
+                        options: ["I want to buy it", "I want to try it on", "I want to see it", "I want to return it"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'Do you have this in another color?'",
+                        options: ["¿Tiene esto en otro color?", "¿Tiene esto en otra talla?", "¿Tiene esto más barato?", "¿Tiene esto en otro estilo?"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el recibo'",
+                        options: ["Receipt", "Bag", "Price", "Discount"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 6,
+                title: "Family",
+                emoji: "👨‍👩‍👧",
+                summary: "Family members and relationships",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la madre'",
+                        options: ["Father", "Mother", "Sister", "Brother"],
+                        correct: 1
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'mi hermano'",
+                        options: ["My sister", "My brother", "My father", "My mother"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Grandmother'",
+                        options: ["Abuela", "Madre", "Hermana", "Tía"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: She is my ___ sister.",
+                        answer: "older",
+                        hint: "Describes age relationship"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: my / is / This / sister",
+                        words: ["This", "is", "my", "sister"],
+                        correct: ["This", "is", "my", "sister"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'los padres'",
+                        options: ["Children", "Parents", "Siblings", "Grandparents"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Cousin'",
+                        options: ["Primo", "Tío", "Abuelo", "Hijo"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la familia'",
+                        options: ["Family", "Friends", "Neighbors", "Colleagues"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 7,
+                title: "Time",
+                emoji: "⏰",
+                summary: "Telling time and scheduling",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la hora'",
+                        options: ["Hour", "Day", "Week", "Month"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: '¿Qué hora es?'",
+                        options: ["What day is it?", "What time is it?", "What month is it?", "What year is it?"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'In the morning'",
+                        options: ["Por la mañana", "Por la noche", "Por la tarde", "Al mediodía"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: It's ten ___ five.",
+                        answer: "past",
+                        hint: "Describes time after the hour"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: meet / Let's / at / noon",
+                        words: ["Let's", "meet", "at", "noon"],
+                        correct: ["Let's", "meet", "at", "noon"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'tarde'",
+                        options: ["Early", "Late", "On time", "Soon"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Tomorrow'",
+                        options: ["Mañana", "Ayer", "Hoy", "Pasado mañana"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el fin de semana'",
+                        options: ["Weekday", "Weekend", "Holiday", "Vacation"],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                id: 8,
+                title: "Weather",
+                emoji: "☀️",
+                summary: "Weather vocabulary and descriptions",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el sol'",
+                        options: ["Sun", "Moon", "Star", "Cloud"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'hace frío'",
+                        options: ["It's hot", "It's cold", "It's windy", "It's rainy"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Rain'",
+                        options: ["Lluvia", "Nieve", "Viento", "Nube"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: It's a ___ day!",
+                        answer: "sunny",
+                        hint: "Describes bright weather"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: cold / today / It's / very",
+                        words: ["It's", "very", "cold", "today"],
+                        correct: ["It's", "very", "cold", "today"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la nieve'",
+                        options: ["Rain", "Snow", "Wind", "Fog"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'What's the weather like?'",
+                        options: ["¿Cómo está el tiempo?", "¿Qué hora es?", "¿Dónde está?", "¿Cuánto es?"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el paraguas'",
+                        options: ["Umbrella", "Coat", "Hat", "Scarf"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 9,
+                title: "Work",
+                emoji: "💼",
+                summary: "Workplace vocabulary and job phrases",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el trabajo'",
+                        options: ["Work", "Home", "School", "Office"],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'soy profesor'",
+                        options: ["I am a doctor", "I am a teacher", "I am a student", "I am a lawyer"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Boss'",
+                        options: ["Jefe", "Cliente", "Compañero", "Empleado"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: I have a ___ at 2 PM.",
+                        answer: "meeting",
+                        hint: "Work-related gathering"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: work / I / an / at / office",
+                        words: ["I", "work", "at", "an", "office"],
+                        correct: ["I", "work", "at", "an", "office"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'la oficina'",
+                        options: ["School", "Office", "Factory", "Store"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'I work as a...'",
+                        options: ["Trabajo como...", "Vivo en...", "Estudio en...", "Voy a..."],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el salario'",
+                        options: ["Salary", "Bonus", "Tax", "Profit"],
+                        correct: 0
+                    }
+                ]
+            },
+            {
+                id: 10,
+                title: "Hobbies",
+                emoji: "🎨",
+                summary: "Hobbies and leisure activities",
+                unlocked: false,
+                completed: false,
+                exercises: [
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el deporte'",
+                        options: ["Music", "Sport", "Art", "Dance"],
+                        correct: 1
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'me gusta leer'",
+                        options: ["I like to read", "I like to write", "I like to sing", "I like to dance"],
+                        correct: 0
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the word: 'Music'",
+                        options: ["Música", "Pintura", "Baile", "Cocina"],
+                        correct: 0
+                    },
+                    {
+                        type: "fill-blank",
+                        question: "Fill in the blank: I play the ___ every weekend.",
+                        answer: "guitar",
+                        hint: "Musical instrument"
+                    },
+                    {
+                        type: "sentence-order",
+                        question: "Order the words: to / love / I / paint",
+                        words: ["I", "love", "to", "paint"],
+                        correct: ["I", "love", "to", "paint"]
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'el pasatiempo'",
+                        options: ["Holiday", "Hobby", "Work", "Study"],
+                        correct: 1
+                    },
+                    {
+                        type: "matching",
+                        question: "Match the phrase: 'In my free time...'",
+                        options: ["En mi tiempo libre...", "En mi trabajo...", "En mi escuela...", "En mi casa..."],
+                        correct: 0
+                    },
+                    {
+                        type: "translation",
+                        question: "Translate to English: 'jugar al fútbol'",
+                        options: ["Play basketball", "Play soccer", "Play tennis", "Play volleyball"],
+                        correct: 1
+                    }
+                ]
+            }
+        ];
+
+        // App State
+        let currentLesson = 0;
+        let currentExercise = 0;
+        let score = 0;
+        let xp = 0;
+        let level = 1;
+        let streak = 1;
+        let selectedOption = null;
+        let orderedWords = [];
+        let achievements = {
+            novice: false,
+            streak: false,
+            master: false
+        };
+
+        // DOM Elements
+        const timelineEl = document.getElementById('timeline');
+        const currentLessonTitleEl = document.getElementById('current-lesson-title');
+        const lessonProgressEl = document.getElementById('lesson-progress');
+        const exerciseQuestionEl = document.getElementById('exercise-question');
+        const exerciseOptionsEl = document.getElementById('exercise-options');
+        const sentenceOrderEl = document.getElementById('sentence-order');
+        const fillBlankInput = document.getElementById('fill-blank-input');
+        const exerciseFeedbackEl = document.getElementById('exercise-feedback');
+        const exerciseSubmitBtn = document.getElementById('exercise-submit');
+        const exerciseNextBtn = document.getElementById('exercise-next');
+        const progressFillEl = document.getElementById('progress-fill');
+        const progressTextEl = document.getElementById('progress-text');
+        const completionMessageEl = document.getElementById('completion-message');
+        const completionXPEl = document.getElementById('completion-xp');
+        const continueBtn = document.getElementById('continue-btn');
+        const xpFillEl = document.getElementById('xp-fill');
+        const streakCountEl = document.getElementById('streak-count');
+        const levelDisplayEl = document.getElementById('level-display');
+        const badgeNovice = document.getElementById('badge-novice');
+        const badgeStreak = document.getElementById('badge-streak');
+        const badgeMaster = document.getElementById('badge-master');
+
+        // Initialize the app
+        function init() {
+            renderTimeline();
+            loadLesson(0);
+            updateXPBar();
+            updateLevel();
+            updateStreak();
+            updateBadges();
+
+            // Event listeners
+            exerciseSubmitBtn.addEventListener('click', submitAnswer);
+            exerciseNextBtn.addEventListener('click', nextExercise);
+            continueBtn.addEventListener('click', continueToNextLesson);
+        }
+
+        // Render the timeline with lessons
+        function renderTimeline() {
+            timelineEl.innerHTML = '';
+
+            lessons.forEach((lesson, index) => {
+                const lessonNode = document.createElement('div');
+                lessonNode.className = `lesson-node ${lesson.unlocked ? 'unlocked' : 'locked'} ${lesson.completed ? 'completed' : ''} ${index === currentLesson ? 'active' : ''}`;
+
+                lessonNode.innerHTML = `
+                    <div class="node-icon">${lesson.emoji}</div>
+                    <div class="lesson-description">
+                        <div class="lesson-title">${lesson.title}</div>
+                        <div class="lesson-summary">${lesson.summary}</div>
+                    </div>
+                `;
+
+                lessonNode.addEventListener('click', () => {
+                    if (lesson.unlocked) {
+                        loadLesson(index);
+                    }
+                });
+
+                timelineEl.appendChild(lessonNode);
+            });
+
+            // Scroll to current lesson
+            const currentLessonNode = document.querySelector('.lesson-node.active');
+            if (currentLessonNode) {
+                currentLessonNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        // Load a lesson
+        function loadLesson(index) {
+            if (index < 0 || index >= lessons.length || !lessons[index].unlocked) return;
+
+            currentLesson = index;
+            currentExercise = 0;
+            score = 0;
+
+            currentLessonTitleEl.textContent = lessons[index].title;
+            lessonProgressEl.textContent = `Lesson ${index + 1} of ${lessons.length}`;
+
+            renderTimeline();
+            loadExercise();
+
+            // Hide completion message and show exercise container
+            completionMessageEl.style.display = 'none';
+            document.getElementById('exercise-container').style.display = 'block';
+
+            // Reset progress
+            updateProgress();
+        }
+
+        // Load the current exercise
+        function loadExercise() {
+            const lesson = lessons[currentLesson];
+            const exercise = lesson.exercises[currentExercise];
+
+            exerciseQuestionEl.textContent = exercise.question;
+            exerciseOptionsEl.innerHTML = '';
+            sentenceOrderEl.innerHTML = '';
+            fillBlankInput.style.display = 'none';
+            exerciseSubmitBtn.style.display = 'none';
+            exerciseNextBtn.style.display = 'none';
+            selectedOption = null;
+            orderedWords = [];
+
+            if (exercise.type === 'translation' || exercise.type === 'matching') {
+                // Create option buttons
+                exercise.options.forEach((option, index) => {
+                    const optionBtn = document.createElement('button');
+                    optionBtn.className = 'option-btn';
+                    optionBtn.textContent = option;
+                    optionBtn.addEventListener('click', () => selectOption(index));
+                    exerciseOptionsEl.appendChild(optionBtn);
+                });
+            } else if (exercise.type === 'fill-blank') {
+                fillBlankInput.style.display = 'block';
+                fillBlankInput.value = '';
+                fillBlankInput.placeholder = exercise.hint || 'Type your answer...';
+                exerciseSubmitBtn.style.display = 'block';
+            } else if (exercise.type === 'sentence-order') {
+                // Shuffle words for display
+                const shuffledWords = [...exercise.words].sort(() => Math.random() - 0.5);
+                shuffledWords.forEach(word => {
+                    const wordEl = document.createElement('span');
+                    wordEl.className = 'sentence-word';
+                    wordEl.textContent = word;
+                    wordEl.draggable = true;
+                    wordEl.addEventListener('dragstart', handleDragStart);
+                    wordEl.addEventListener('dragover', handleDragOver);
+                    wordEl.addEventListener('drop', handleDrop);
+                    sentenceOrderEl.appendChild(wordEl);
+                });
+                exerciseSubmitBtn.style.display = 'block';
+            }
+
+            // Reset UI
+            exerciseFeedbackEl.className = 'exercise-feedback';
+            exerciseFeedbackEl.style.display = 'none';
+
+            // Update progress
+            updateProgress();
+        }
+
+        // Handle option selection
+        function selectOption(index) {
+            if (selectedOption !== null) return;
+
+            selectedOption = index;
+
+            // Highlight selected option
+            const optionBtns = document.querySelectorAll('.option-btn');
+            optionBtns.forEach((btn, i) => {
+                if (i === index) {
+                    btn.classList.add('selected');
+                } else {
+                    btn.classList.remove('selected');
+                }
+            });
+
+            // Check answer
+            const exercise = lessons[currentLesson].exercises[currentExercise];
+            const isCorrect = index === exercise.correct;
+
+            // Show feedback
+            exerciseFeedbackEl.textContent = isCorrect ? 'Correct! 🎉' : 'Incorrect 😕';
+            exerciseFeedbackEl.className = `exercise-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+            exerciseFeedbackEl.style.display = 'block';
+
+            // Update score
+            if (isCorrect) {
+                score++;
+            }
+
+            // Show next button
+            exerciseNextBtn.style.display = 'block';
+        }
+
+        // Handle drag and drop for sentence ordering
+        function handleDragStart(e) {
+            e.target.classList.add('dragging');
+            e.dataTransfer.setData('text/plain', e.target.textContent);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const draggedWord = e.dataTransfer.getData('text');
+            const draggedEl = Array.from(sentenceOrderEl.children).find(el => el.textContent === draggedWord);
+            const dropTarget = e.target.closest('.sentence-word');
+            if (dropTarget && draggedEl !== dropTarget) {
+                const allWords = Array.from(sentenceOrderEl.children);
+                const draggedIndex = allWords.indexOf(draggedEl);
+                const dropIndex = allWords.indexOf(dropTarget);
+                if (draggedIndex < dropIndex) {
+                    sentenceOrderEl.insertBefore(draggedEl, dropTarget.nextSibling);
+                } else {
+                    sentenceOrderEl.insertBefore(draggedEl, dropTarget);
+                }
+            }
+            draggedEl.classList.remove('dragging');
+        }
+
+        // Submit answer for fill-blank and sentence-order
+        function submitAnswer() {
+            const exercise = lessons[currentLesson].exercises[currentExercise];
+            let isCorrect = false;
+
+            if (exercise.type === 'fill-blank') {
+                const userAnswer = fillBlankInput.value.trim().toLowerCase();
+                isCorrect = userAnswer === exercise.answer.toLowerCase();
+                exerciseFeedbackEl.textContent = isCorrect ? 'Correct! 🎉' : `Incorrect 😕 The correct answer is "${exercise.answer}"`;
+            } else if (exercise.type === 'sentence-order') {
+                orderedWords = Array.from(sentenceOrderEl.children).map(el => el.textContent);
+                isCorrect = JSON.stringify(orderedWords) === JSON.stringify(exercise.correct);
+                exerciseFeedbackEl.textContent = isCorrect ? 'Correct! 🎉' : `Incorrect 😕 The correct order is "${exercise.correct.join(' ')}"`;
+            }
+
+            exerciseFeedbackEl.className = `exercise-feedback ${isCorrect ? 'feedback-correct' : 'feedback-incorrect'}`;
+            exerciseFeedbackEl.style.display = 'block';
+
+            if (isCorrect) {
+                score++;
+            }
+
+            exerciseSubmitBtn.style.display = 'none';
+            exerciseNextBtn.style.display = 'block';
+        }
+
+        // Move to next exercise or complete lesson
+        function nextExercise() {
+            currentExercise++;
+
+            if (currentExercise < lessons[currentLesson].exercises.length) {
+                loadExercise();
+            } else {
+                completeLesson();
+            }
+        }
+
+        // Complete the current lesson
+        function completeLesson() {
+            // Mark lesson as completed
+            lessons[currentLesson].completed = true;
+
+            // Unlock next lesson if available
+            if (currentLesson < lessons.length - 1) {
+                lessons[currentLesson + 1].unlocked = true;
+            }
+
+            // Calculate XP earned (15 XP per lesson + bonus for perfect score)
+            const xpEarned = 15 + (score === lessons[currentLesson].exercises.length ? 10 : 0);
+            xp += xpEarned;
+
+            // Update UI
+            completionMessageEl.style.display = 'block';
+            document.getElementById('exercise-container').style.display = 'none';
+            completionXPEl.textContent = `+${xpEarned} XP Earned`;
+
+            // Update progress
+            updateProgress();
+            updateXPBar();
+            updateLevel();
+            updateBadges();
+            renderTimeline();
+        }
+
+        // Continue to next lesson
+        function continueToNextLesson() {
+            if (currentLesson < lessons.length - 1) {
+                loadLesson(currentLesson + 1);
+            } else {
+                alert('Congratulations! You have completed all lessons!');
+            }
+        }
+
+        // Update progress bar and text
+        function updateProgress() {
+            const lesson = lessons[currentLesson];
+            const exerciseCount = lesson.exercises.length;
+            const progress = currentExercise / exerciseCount * 100;
+
+            progressFillEl.style.width = `${progress}%`;
+            progressTextEl.textContent = `${currentExercise}/${exerciseCount}`;
+        }
+
+        // Update XP bar
+        function updateXPBar() {
+            const xpNeededForNextLevel = level * 100;
+            const xpPercentage = Math.min((xp % xpNeededForNextLevel) / xpNeededForNextLevel * 100, 100);
+            xpFillEl.style.width = `${xpPercentage}%`;
+        }
+
+        // Update level
+        function updateLevel() {
+            const newLevel = Math.floor(xp / 100) + 1;
+            if (newLevel !== level) {
+                level = newLevel;
+                levelDisplayEl.textContent = level;
+                alert(`Congratulations! You've reached Level ${level}!`);
+            }
+            levelDisplayEl.textContent = level;
+        }
+
+        // Update streak
+        function updateStreak() {
+            streakCountEl.textContent = streak;
+            if (streak >= 5 && !achievements.streak) {
+                achievements.streak = true;
+                updateBadges();
+            }
+        }
+
+        // Update badges
+        function updateBadges() {
+            if (!achievements.novice && lessons.some(lesson => lesson.completed)) {
+                achievements.novice = true;
+            }
+            if (!achievements.master && lessons.every(lesson => lesson.completed)) {
+                achievements.master = true;
+            }
+
+            badgeNovice.classList.toggle('earned', achievements.novice);
+            badgeStreak.classList.toggle('earned', achievements.streak);
+            badgeMaster.classList.toggle('earned', achievements.master);
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
