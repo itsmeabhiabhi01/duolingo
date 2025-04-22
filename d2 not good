@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LinguaLearn - Language Learning App</title>
+    <style>
+        :root {
+            --primary-color: #58cc02;
+            --secondary-color: #1cb0f6;
+            --dark-color: #3c3c3c;
+            --light-color: #f8f8f8;
+            --error-color: #ff4b4b;
+            --correct-color: #4caf50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 1rem;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .user-profile {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        
+        main {
+            margin-top: 80px;
+            padding: 1rem;
+        }
+        
+        .language-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .language-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            width: 150px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+        
+        .language-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .language-card.selected {
+            border: 3px solid var(--primary-color);
+        }
+        
+        .language-card img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin-bottom: 0.5rem;
+        }
+        
+        .dashboard {
+            display: none;
+            margin-top: 2rem;
+        }
+        
+        .progress-bar {
+            background-color: #e0e0e0;
+            height: 10px;
+            border-radius: 5px;
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .streak {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .streak-count {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .lesson-section {
+            margin-top: 2rem;
+        }
+        
+        .lesson-cards {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .lesson-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 1rem;
+            width: 200px;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .lesson-card.completed {
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .lesson-card.locked {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .lesson-card .lock-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            color: var(--dark-color);
+        }
+        
+        .lesson-card h3 {
+            margin-bottom: 0.5rem;
+            color: var(--dark-color);
+        }
+        
+        .lesson-card p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .lesson-container {
+            display: none;
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .option {
+            background-color: var(--light-color);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-align: center;
+        }
+        
+        .option:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .option.correct {
+            background-color: var(--correct-color);
+            color: white;
+        }
+        
+        .option.incorrect {
+            background-color: var(--error-color);
+            color: white;
+        }
+        
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: background-color 0.2s;
+        }
+        
+        .next-btn:hover {
+            background-color: #4aa900;
+        }
+        
+        .lesson-progress {
+            height: 5px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+        }
+        
+        .lesson-progress-fill {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .xp-earned {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .xp-earned span {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        
+        .home-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: block;
+            margin: 1rem auto 0;
+            transition: background-color 0.2s;
+        }
+        
+        .home-btn:hover {
+            background-color: #0d8ddb;
+        }
+        
+        @media (max-width: 768px) {
+            .language-card {
+                width: 120px;
+            }
+            
+            .lesson-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">LinguaLearn</div>
+        <div class="user-profile" id="userProfile">U</div>
+    </header>
+    
+    <main>
+        <section id="welcomeSection">
+            <h1>Welcome to LinguaLearn!</h1>
+            <p>Choose a language to start learning:</p>
+            
+            <div class="language-selection">
+                <div class="language-card" data-lang="spanish">
+                    <img src="https://flagcdn.com/w80/es.png" alt="Spanish">
+                    <h3>Spanish</h3>
+                    <p>25 million learners</p>
+                </div>
+                
+                <div class="language-card" data-lang="french">
+                    <img src="https://flagcdn.com/w80/fr.png" alt="French">
+                    <h3>French</h3>
+                    <p>18 million learners</p>
+                </div>
+                
+                <div class="language-card" data-lang="german">
+                    <img src="https://flagcdn.com/w80/de.png" alt="German">
+                    <h3>German</h3>
+                    <p>12 million learners</p>
+                </div>
+                
+                <div class="language-card" data-lang="japanese">
+                    <img src="https://flagcdn.com/w80/jp.png" alt="Japanese">
+                    <h3>Japanese</h3>
+                    <p>8 million learners</p>
+                </div>
+            </div>
+        </section>
+        
+        <section id="dashboard" class="dashboard">
+            <h2 id="selectedLanguage">Learning Spanish</h2>
+            <div class="progress-bar">
+                <div class="progress-fill" id="overallProgress"></div>
+            </div>
+            <p>Your progress: <span id="progressText">0%</span></p>
+            
+            <div class="streak">
+                <div>🔥</div>
+                <div>Current streak: <span class="streak-count" id="streakCount">0</span> days</div>
+            </div>
+            
+            <div class="lesson-section">
+                <h3>Today's Lessons</h3>
+                <div class="lesson-cards" id="lessonCards">
+                    <!-- Lesson cards will be added here dynamically -->
+                </div>
+            </div>
+        </section>
+        
+        <section id="lessonContainer" class="lesson-container">
+            <div class="lesson-progress">
+                <div class="lesson-progress-fill" id="lessonProgress"></div>
+            </div>
+            
+            <div class="question" id="questionText">
+                Translate this sentence
+            </div>
+            
+            <div class="options" id="optionsContainer">
+                <!-- Options will be added here dynamically -->
+            </div>
+            
+            <button class="next-btn" id="nextBtn">Next</button>
+            
+            <div class="xp-earned" id="xpEarned">
+                You earned <span id="xpAmount">10</span> XP!
+            </div>
+            
+            <button class="home-btn" id="homeBtn">Return to Dashboard</button>
+        </section>
+    </main>
+    
+    <script>
+        // App state
+        const state = {
+            selectedLanguage: null,
+            streak: 0,
+            xp: 0,
+            completedLessons: [],
+            currentLesson: null,
+            currentQuestionIndex: 0,
+            questions: [],
+            userAnswers: []
+        };
+        
+        // Language data
+        const languages = {
+            spanish: {
+                name: "Spanish",
+                flag: "https://flagcdn.com/w80/es.png",
+                learners: "25 million",
+                lessons: [
+                    {
+                        id: "spanish_basics_1",
+                        title: "Basics 1",
+                        description: "Learn basic words and phrases",
+                        questions: [
+                            {
+                                question: "Translate: Hello",
+                                options: ["Hola", "Adiós", "Gracias", "Por favor"],
+                                correctAnswer: 0
+                            },
+                            {
+                                question: "Translate: Goodbye",
+                                options: ["Hola", "Adiós", "Buenos días", "Buenas noches"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Thank you",
+                                options: ["Por favor", "Lo siento", "Gracias", "De nada"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "What does 'Por favor' mean?",
+                                options: ["Thank you", "Please", "You're welcome", "Excuse me"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Good morning",
+                                options: ["Buenas noches", "Buenas tardes", "Buenos días", "Hasta luego"],
+                                correctAnswer: 2
+                            }
+                        ]
+                    },
+                    {
+                        id: "spanish_basics_2",
+                        title: "Basics 2",
+                        description: "More basic words and phrases",
+                        questions: [
+                            {
+                                question: "Translate: My name is...",
+                                options: ["Me llamo...", "Yo soy...", "Mi nombre es...", "Todos los anteriores"],
+                                correctAnswer: 3
+                            },
+                            {
+                                question: "Translate: How are you?",
+                                options: ["¿Qué tal?", "¿Cómo estás?", "¿Qué pasa?", "Todas las anteriores"],
+                                correctAnswer: 3
+                            },
+                            {
+                                question: "What does 'Lo siento' mean?",
+                                options: ["I'm sorry", "I don't know", "I understand", "I'm happy"],
+                                correctAnswer: 0
+                            },
+                            {
+                                question: "Translate: I don't understand",
+                                options: ["No sé", "No entiendo", "No hablo español", "No comprendo"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "What does 'De nada' mean?",
+                                options: ["Thank you", "Please", "You're welcome", "Excuse me"],
+                                correctAnswer: 2
+                            }
+                        ]
+                    },
+                    {
+                        id: "spanish_greetings",
+                        title: "Greetings",
+                        description: "Learn common greetings",
+                        questions: [
+                            {
+                                question: "Translate: Good afternoon",
+                                options: ["Buenos días", "Buenas tardes", "Buenas noches", "Hola"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Good night",
+                                options: ["Buenos días", "Buenas tardes", "Buenas noches", "Adiós"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "What is the response to '¿Cómo estás?' when you're doing well?",
+                                options: ["Mal", "Así así", "Bien", "Regular"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "Translate: See you later",
+                                options: ["Hasta luego", "Adiós", "Nos vemos", "Todas las anteriores"],
+                                correctAnswer: 3
+                            },
+                            {
+                                question: "What does 'Mucho gusto' mean?",
+                                options: ["Thank you very much", "Nice to meet you", "You're welcome", "See you soon"],
+                                correctAnswer: 1
+                            }
+                        ]
+                    }
+                ]
+            },
+            french: {
+                name: "French",
+                flag: "https://flagcdn.com/w80/fr.png",
+                learners: "18 million",
+                lessons: [
+                    {
+                        id: "french_basics_1",
+                        title: "Basics 1",
+                        description: "Learn basic words and phrases",
+                        questions: [
+                            {
+                                question: "Translate: Hello",
+                                options: ["Bonjour", "Au revoir", "Merci", "S'il vous plaît"],
+                                correctAnswer: 0
+                            },
+                            {
+                                question: "Translate: Goodbye",
+                                options: ["Bonjour", "Au revoir", "Bonsoir", "Bonne nuit"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Thank you",
+                                options: ["S'il vous plaît", "Désolé", "Merci", "De rien"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "What does 'S'il vous plaît' mean?",
+                                options: ["Thank you", "Please", "You're welcome", "Excuse me"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Good morning",
+                                options: ["Bonne nuit", "Bonsoir", "Bonjour", "À bientôt"],
+                                correctAnswer: 2
+                            }
+                        ]
+                    }
+                ]
+            },
+            german: {
+                name: "German",
+                flag: "https://flagcdn.com/w80/de.png",
+                learners: "12 million",
+                lessons: [
+                    {
+                        id: "german_basics_1",
+                        title: "Basics 1",
+                        description: "Learn basic words and phrases",
+                        questions: [
+                            {
+                                question: "Translate: Hello",
+                                options: ["Hallo", "Tschüss", "Danke", "Bitte"],
+                                correctAnswer: 0
+                            },
+                            {
+                                question: "Translate: Goodbye",
+                                options: ["Hallo", "Tschüss", "Guten Tag", "Gute Nacht"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Thank you",
+                                options: ["Bitte", "Entschuldigung", "Danke", "Keine Ursache"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "What does 'Bitte' mean?",
+                                options: ["Thank you", "Please", "You're welcome", "Both 2 and 3"],
+                                correctAnswer: 3
+                            },
+                            {
+                                question: "Translate: Good morning",
+                                options: ["Gute Nacht", "Guten Abend", "Guten Morgen", "Hallo"],
+                                correctAnswer: 2
+                            }
+                        ]
+                    }
+                ]
+            },
+            japanese: {
+                name: "Japanese",
+                flag: "https://flagcdn.com/w80/jp.png",
+                learners: "8 million",
+                lessons: [
+                    {
+                        id: "japanese_basics_1",
+                        title: "Basics 1",
+                        description: "Learn basic words and phrases",
+                        questions: [
+                            {
+                                question: "Translate: Hello",
+                                options: ["こんにちは (Konnichiwa)", "さようなら (Sayōnara)", "ありがとう (Arigatō)", "お願いします (Onegaishimasu)"],
+                                correctAnswer: 0
+                            },
+                            {
+                                question: "Translate: Goodbye",
+                                options: ["こんにちは (Konnichiwa)", "さようなら (Sayōnara)", "おはよう (Ohayō)", "おやすみ (Oyasumi)"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Thank you",
+                                options: ["お願いします (Onegaishimasu)", "すみません (Sumimasen)", "ありがとう (Arigatō)", "どういたしまして (Dōitashimashite)"],
+                                correctAnswer: 2
+                            },
+                            {
+                                question: "What does 'お願いします (Onegaishimasu)' mean?",
+                                options: ["Thank you", "Please", "You're welcome", "Excuse me"],
+                                correctAnswer: 1
+                            },
+                            {
+                                question: "Translate: Good morning",
+                                options: ["おやすみ (Oyasumi)", "こんばんは (Konbanwa)", "おはよう (Ohayō)", "こんにちは (Konnichiwa)"],
+                                correctAnswer: 2
+                            }
+                        ]
+                    }
+                ]
+            }
+        };
+        
+        // DOM elements
+        const welcomeSection = document.getElementById('welcomeSection');
+        const dashboard = document.getElementById('dashboard');
+        const lessonContainer = document.getElementById('lessonContainer');
+        const languageCards = document.querySelectorAll('.language-card');
+        const selectedLanguageText = document.getElementById('selectedLanguage');
+        const lessonCardsContainer = document.getElementById('lessonCards');
+        const questionText = document.getElementById('questionText');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const nextBtn = document.getElementById('nextBtn');
+        const xpEarned = document.getElementById('xpEarned');
+        const xpAmount = document.getElementById('xpAmount');
+        const homeBtn = document.getElementById('homeBtn');
+        const overallProgress = document.getElementById('overallProgress');
+        const progressText = document.getElementById('progressText');
+        const streakCount = document.getElementById('streakCount');
+        const lessonProgress = document.getElementById('lessonProgress');
+        const userProfile = document.getElementById('userProfile');
+        
+        // Event listeners
+        languageCards.forEach(card => {
+            card.addEventListener('click', () => selectLanguage(card.dataset.lang));
+        });
+        
+        nextBtn.addEventListener('click', nextQuestion);
+        homeBtn.addEventListener('click', returnToDashboard);
+        userProfile.addEventListener('click', showProfile);
+        
+        // Functions
+        function selectLanguage(lang) {
+            state.selectedLanguage = lang;
+            
+            // Update UI
+            languageCards.forEach(card => {
+                if (card.dataset.lang === lang) {
+                    card.classList.add('selected');
+                } else {
+                    card.classList.remove('selected');
+                }
+            });
+            
+            // Show dashboard after a short delay
+            setTimeout(() => {
+                welcomeSection.style.display = 'none';
+                dashboard.style.display = 'block';
+                updateDashboard();
+            }, 500);
+        }
+        
+        function updateDashboard() {
+            const langData = languages[state.selectedLanguage];
+            selectedLanguageText.textContent = `Learning ${langData.name}`;
+            
+            // Update streak
+            streakCount.textContent = state.streak;
+            
+            // Create lesson cards
+            lessonCardsContainer.innerHTML = '';
+            langData.lessons.forEach((lesson, index) => {
+                const isCompleted = state.completedLessons.includes(lesson.id);
+                const isLocked = index > 0 && !state.completedLessons.includes(langData.lessons[index - 1].id);
+                
+                const lessonCard = document.createElement('div');
+                lessonCard.className = `lesson-card ${isCompleted ? 'completed' : ''} ${isLocked ? 'locked' : ''}`;
+                lessonCard.dataset.lessonId = lesson.id;
+                
+                if (isLocked) {
+                    lessonCard.innerHTML = `
+                        <div class="lock-icon">🔒</div>
+                        <h3>${lesson.title}</h3>
+                        <p>${lesson.description}</p>
+                    `;
+                } else {
+                    lessonCard.innerHTML = `
+                        <h3>${lesson.title}</h3>
+                        <p>${lesson.description}</p>
+                    `;
+                    lessonCard.addEventListener('click', () => startLesson(lesson.id));
+                }
+                
+                lessonCardsContainer.appendChild(lessonCard);
+            });
+            
+            // Update progress
+            const totalLessons = langData.lessons.length;
+            const completedCount = state.completedLessons.filter(id => 
+                langData.lessons.some(lesson => lesson.id === id)
+            ).length;
+            
+            const progressPercentage = Math.round((completedCount / totalLessons) * 100);
+            overallProgress.style.width = `${progressPercentage}%`;
+            progressText.textContent = `${progressPercentage}%`;
+        }
+        
+        function startLesson(lessonId) {
+            const langData = languages[state.selectedLanguage];
+            const lesson = langData.lessons.find(l => l.id === lessonId);
+            
+            if (!lesson) return;
+            
+            state.currentLesson = lessonId;
+            state.currentQuestionIndex = 0;
+            state.questions = [...lesson.questions];
+            state.userAnswers = [];
+            
+            dashboard.style.display = 'none';
+            lessonContainer.style.display = 'block';
+            xpEarned.style.display = 'none';
+            
+            showQuestion();
+        }
+        
+        function showQuestion() {
+            if (state.currentQuestionIndex >= state.questions.length) {
+                completeLesson();
+                return;
+            }
+            
+            const question = state.questions[state.currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Update lesson progress
+            const progressPercentage = (state.currentQuestionIndex / state.questions.length) * 100;
+            lessonProgress.style.width = `${progressPercentage}%`;
+            
+            // Create options
+            optionsContainer.innerHTML = '';
+            question.options.forEach((option, index) => {
+                const optionElement = document.createElement('div');
+                optionElement.className = 'option';
+                optionElement.textContent = option;
+                optionElement.dataset.optionIndex = index;
+                optionElement.addEventListener('click', () => selectAnswer(index));
+                optionsContainer.appendChild(optionElement);
+            });
+            
+            nextBtn.style.display = 'none';
+        }
+        
+        function selectAnswer(optionIndex) {
+            const question = state.questions[state.currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            // Disable all options
+            options.forEach(opt => {
+                opt.style.pointerEvents = 'none';
+            });
+            
+            // Mark correct and incorrect answers
+            if (optionIndex === question.correctAnswer) {
+                options[optionIndex].classList.add('correct');
+                state.userAnswers.push(true);
+            } else {
+                options[optionIndex].classList.add('incorrect');
+                options[question.correctAnswer].classList.add('correct');
+                state.userAnswers.push(false);
+            }
+            
+            nextBtn.style.display = 'block';
+        }
+        
+        function nextQuestion() {
+            state.currentQuestionIndex++;
+            showQuestion();
+        }
+        
+        function completeLesson() {
+            // Calculate XP earned (10 per correct answer)
+            const correctAnswers = state.userAnswers.filter(answer => answer).length;
+            const earnedXP = correctAnswers * 10;
+            state.xp += earnedXP;
+            
+            // Mark lesson as completed if not already
+            if (!state.completedLessons.includes(state.currentLesson)) {
+                state.completedLessons.push(state.currentLesson);
+            }
+            
+            // Update streak
+            state.streak++;
+            
+            // Show XP earned
+            xpAmount.textContent = earnedXP;
+            xpEarned.style.display = 'block';
+            nextBtn.style.display = 'none';
+            
+            // Hide question and options
+            questionText.style.display = 'none';
+            optionsContainer.style.display = 'none';
+        }
+        
+        function returnToDashboard() {
+            lessonContainer.style.display = 'none';
+            dashboard.style.display = 'block';
+            welcomeSection.style.display = 'none';
+            
+            // Reset lesson view
+            questionText.style.display = 'block';
+            optionsContainer.style.display = 'flex';
+            xpEarned.style.display = 'none';
+            
+            updateDashboard();
+        }
+        
+        function showProfile() {
+            alert(`User Profile\n\nCurrent streak: ${state.streak} days\nTotal XP: ${state.xp}\nCompleted lessons: ${state.completedLessons.length}`);
+        }
+        
+        // Initialize
+        function init() {
+            // Load state from localStorage if available
+            const savedState = localStorage.getItem('linguaLearnState');
+            if (savedState) {
+                Object.assign(state, JSON.parse(savedState));
+            }
+            
+            // For demo purposes, let's simulate some progress
+            if (state.completedLessons.length === 0) {
+                state.completedLessons.push('spanish_basics_1');
+                state.streak = 3;
+                state.xp = 50;
+            }
+        }
+        
+        init();
+    </script>
+</body>
+</html>
